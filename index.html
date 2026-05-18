@@ -96,10 +96,20 @@
   .row input{padding:9px 10px;font-size:14px;width:100%}
   .row .f1{flex:1}.row .vv{width:118px;text-align:right;font-family:'Spline Sans Mono'}
   .row .ap{width:66px;font-size:11px;font-family:'Spline Sans Mono';text-align:center;color:var(--muted)}
-  .row .rm{background:none;border:none;color:var(--faint);font-size:17px;width:auto;padding:2px}
+  .row .rm{background:none;border:none;color:var(--faint);font-size:17px;width:auto;padding:2px;cursor:pointer}
   .tot{display:flex;justify-content:space-between;padding:12px 15px;font-family:'Spline Sans Mono';font-weight:600;font-size:13.5px;background:var(--card2)}
   .addmini{width:100%;padding:11px;border:none;border-top:1px dashed var(--line2);background:transparent;color:var(--muted);font-family:'Spline Sans Mono';font-size:11px;cursor:pointer;}
   .addmini:active{background:var(--line)}
+
+  /* Enhanced Cash & Accounts Cards */
+  .acc-card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; display:flex; flex-direction:column; gap:10px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);}
+  .acc-row1 { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  .acc-row2 { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  .acc-name { font-weight:600; font-size:15px; border:none; background:transparent; padding:0; outline:none; color:var(--ink); width:100%;font-family:'Figtree'; border-bottom:1px solid transparent; transition:.2s}
+  .acc-name:focus { border-bottom:1px solid var(--teal); }
+  .acc-ccy { background:var(--card2); border:1px solid var(--line); border-radius:8px; font-size:11.5px; padding:4px 8px; color:var(--muted); outline:none; font-family:'Spline Sans Mono'; font-weight:600}
+  .acc-amt { font-family:'Spline Sans Mono'; font-size:19px; font-weight:600; text-align:right; border:none; background:transparent; padding:0; width:100%; outline:none; color:var(--ink); border-bottom:1px solid transparent; transition:.2s}
+  .acc-amt:focus { border-bottom:1px solid var(--teal); }
 
   input,select{background:var(--card);border:1px solid var(--line2);color:var(--ink);padding:12px;border-radius:11px;font-size:16px;font-family:'Figtree';width:100%}
   input:focus,select:focus{outline:none;border-color:var(--teal)}
@@ -180,36 +190,36 @@ const QUICK=[
 const MK=(y,m)=>y+"-"+String(m).padStart(2,"0");
 const u=()=>Math.random().toString(36).slice(2,9);
 
+// Data sesuai CSV yang diunggah: 18 Mei 2026
 function DEFAULTS(){
-  const fixed=m=>[
-    {id:u(),date:m+"-01",desc:"Mext (scholarship)",amt:145000,rawAmt:145000,dir:"in",cat:"Income"},
-    {id:u(),date:m+"-05",desc:"Apartemen",amt:26000,rawAmt:26000,dir:"out",cat:"Utilities"},
-    {id:u(),date:m+"-05",desc:"Asuransi kesehatan",amt:2500,rawAmt:2500,dir:"out",cat:"Utilities"},
-    {id:u(),date:m+"-08",desc:"Gas",amt:5000,rawAmt:5000,dir:"out",cat:"Utilities"},
-    {id:u(),date:m+"-08",desc:"Listrik",amt:3000,rawAmt:3000,dir:"out",cat:"Utilities"},
-    {id:u(),date:m+"-08",desc:"Air",amt:4950,rawAmt:4950,dir:"out",cat:"Utilities"},
-    {id:u(),date:m+"-10",desc:"iPhone + Data",amt:6272,rawAmt:6272,dir:"out",cat:"Utilities"},
-  ];
+  const m = "2026-05";
+  const aY = u(), aB = u(), aI = u(), aS = u(), aD = u(), aP = u(), aJ = u();
   return {
-    kurs:106.71, viewCcy:"JPY", cur:MK(2026,5), tab:"home", showInstall:true,
-    months:{ "2026-05":{start:11027,tx:[
-      ...fixed("2026-05"),
-      {id:u(),date:"2026-05-15",desc:"Baito (part-time)",amt:50000,rawAmt:50000,dir:"in",cat:"Income"},
-      {id:u(),date:"2026-05-20",desc:"Bayar JCB (credit card)",amt:43895,rawAmt:43895,dir:"out",cat:"Other"},
-    ]} },
+    kurs: 111.75, viewCcy: "JPY", cur: m, tab: "home", showInstall: true, lastOutAccId: null,
+    months:{
+      "2026-05":{
+        start: 11027,
+        tx:[
+          {id:u(),date:"2026-05-18",desc:"Transfer (Dari CSV)",amt:0,tfOut:0,tfFee:0,tfIn:0,dir:"tf",cat:"Transfer",accId:aY,accId2:aD},
+          {id:u(),date:"2026-05-18",desc:"Hamasushi",amt:1023,rawAmt:1023,dir:"out",cat:"Eating-Out",accId:aD},
+          {id:u(),date:"2026-05-18",desc:"Transfer (Dari CSV)",amt:0,tfOut:0,tfFee:0,tfIn:0,dir:"tf",cat:"Transfer",accId:aY,accId2:aP},
+        ]
+      }
+    },
     accounts:[
-      {id:u(),name:"Yuchou",app:"JP bank",ccy:"JPY",amount:11027},
-      {id:u(),name:"BNI",app:"ID bank",ccy:"IDR",amount:450000},
-      {id:u(),name:"RDN IPOT",app:"Broker",ccy:"IDR",amount:0},
-      {id:u(),name:"RDN Stockbit",app:"Broker",ccy:"IDR",amount:0},
-      {id:u(),name:"Dompet",app:"Cash",ccy:"JPY",amount:0},
-      {id:u(),name:"Paypay",app:"Paypay",ccy:"JPY",amount:0},
-      {id:u(),name:"JCB",app:"Credit card",ccy:"JPY",amount:-43895},
+      {id:aY,name:"Yuchou",app:"JP bank",ccy:"JPY",amount:9027},
+      {id:aB,name:"BNI",app:"ID bank",ccy:"IDR",amount:459642},
+      {id:aI,name:"IPOT",app:"Broker",ccy:"IDR",amount:35116},
+      {id:aS,name:"Stockbit",app:"Broker",ccy:"IDR",amount:33250},
+      {id:aD,name:"Dompet",app:"Cash",ccy:"JPY",amount:5414},
+      {id:aP,name:"Paypay",app:"Paypay",ccy:"JPY",amount:179},
+      {id:aJ,name:"JCB",app:"Credit card",ccy:"JPY",amount:-43895},
     ],
     holdings:[
-      {id:u(),broker:"IPOT",ticker:"BRMS",lots:723,avg:900,last:900},
-      {id:u(),broker:"IPOT",ticker:"CGAS",lots:2994,avg:176,last:176},
-      {id:u(),broker:"Stockbit",ticker:"BRMS",lots:396,avg:900,last:900},
+      {id:u(),broker:"IPOT",ticker:"BRMS",lots:723,avg:720,last:720},
+      {id:u(),broker:"IPOT",ticker:"CGAS",lots:2994,avg:179,last:179},
+      {id:u(),broker:"Stockbit",ticker:"BRMS",lots:396,avg:720,last:720},
+      {id:u(),broker:"IPOT",ticker:"AADI",lots:0.34,avg:8950,last:8950},
     ],
     goalEmergency:300000,
     snapshots:[],
@@ -265,14 +275,14 @@ function persist(){
 async function load(){const v=await STORE.get(KEY);if(v){try{S=Object.assign(DEFAULTS(),JSON.parse(v));S.viewCcy=S.viewCcy||"JPY";}catch(e){}}}
 function toast(t){const e=document.getElementById("toast");e.textContent=t;e.classList.add("show");clearTimeout(e._h);e._h=setTimeout(()=>e.classList.remove("show"),2500);}
 
-/* ===== BATCH REALTIME API (YEN & SAHAM) ===== */
+/* ===== BATCH REALTIME API (SCRAPING GOOGLE FINANCE + ER-API) ===== */
 async function fetchMarketData(silent=false){
   if(!silent) toast("🔄 Sinkronisasi pasar real-time...");
   let upK = false, upS = 0;
   
+  // 1. Fetch Kurs Terkini (Stabil)
   try {
-    // 1. Fetch Kurs (Sangat Stabil: open.er-api)
-    const resKurs = await fetch("https://open.er-api.com/v6/latest/JPY", {cache: "no-store"});
+    const resKurs = await fetch("https://open.er-api.com/v6/latest/JPY?_=" + Date.now(), {cache: "no-store"});
     if(resKurs.ok){
       const dataK = await resKurs.json();
       if(dataK && dataK.rates && dataK.rates.IDR){
@@ -282,44 +292,56 @@ async function fetchMarketData(silent=false){
     }
   } catch(e) { console.log("Gagal Kurs", e); }
 
+  // 2. Fetch Saham via Scraping Google Finance
   try {
-    // 2. Fetch Saham (Raw AllOrigins -> Bypass Cache Proxy)
     if(S.holdings.length > 0) {
-      let symbols = [];
-      S.holdings.forEach(h => {
-        let t = h.ticker.toUpperCase().trim();
-        if(t.length === 4 && !t.includes(".")) t += ".JK"; // Deteksi auto Saham Indo
-        if(!symbols.includes(t)) symbols.push(t);
+      // Loop pararel tanpa merusak memori
+      const promises = S.holdings.map(async (h) => {
+        let ticker = h.ticker.toUpperCase().replace('.JK', '').trim();
+        let gfTicker = ticker.length === 4 ? ticker + ":IDX" : ticker; // Format Google Finance
+
+        const url = `https://www.google.com/finance/quote/${gfTicker}`;
+        // Bypass cache dengan AllOrigins GET (mengambil isi HTML web)
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}&disableCache=true&_=${Date.now()}`;
+        
+        try {
+          const res = await fetch(proxyUrl, {cache: "no-store"});
+          if(res.ok) {
+            const data = await res.json();
+            const html = data.contents;
+            // Mencari elemen harga utama di Google Finance
+            const match = html.match(/class="YMlKec fxKbKc"[^>]*>([^<]+)<\/div>/);
+            if(match && match[1]){
+              // Bersihkan karakter aneh, koma, titik.
+              let pStr = match[1].replace(/[^0-9.,]/g, '');
+              // Normalisasi format desimal
+              if(pStr.indexOf(',') > pStr.indexOf('.')) {
+                // Format Indonesia: 1.200,50 -> 1200.50
+                pStr = pStr.replace(/\./g, '').replace(',', '.');
+              } else {
+                // Format US: 1,200.50 -> 1200.50
+                pStr = pStr.replace(/,/g, '');
+              }
+              
+              let price = parseFloat(pStr);
+              if(price && !isNaN(price) && h.last !== price) {
+                h.last = price;
+                upS++;
+              }
+            }
+          }
+        } catch(err) { console.log("Gagal fetch " + gfTicker, err); }
       });
       
-      const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols.join(",")}`;
-      // Endpoint "raw" me-return langsung JSON aslinya tanpa dibungkus .contents
-      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}&_=${Date.now()}`;
-      
-      const resS = await fetch(proxyUrl, {cache: "no-store"});
-      if(resS.ok){
-        const yh = await resS.json();
-        if(yh && yh.quoteResponse && yh.quoteResponse.result) {
-          yh.quoteResponse.result.forEach(q => {
-            S.holdings.forEach(h => {
-              let ht = h.ticker.toUpperCase().trim();
-              let htJk = (ht.length === 4 && !ht.includes(".")) ? ht + ".JK" : ht;
-              if(htJk === q.symbol && q.regularMarketPrice) {
-                let nl = parseFloat(q.regularMarketPrice);
-                if(h.last !== nl) { h.last = nl; upS++; }
-              }
-            });
-          });
-        }
-      }
+      await Promise.all(promises);
     }
   } catch(e) { console.log("Gagal Saham", e); }
 
   if(upK || upS > 0) {
     persist(); render();
-    if(!silent) toast(`✓ Sukses: Kurs & ${upS} saham diupdate!`);
+    if(!silent) toast(`✓ Berhasil: Kurs & ${upS} saham diperbarui!`);
   } else {
-    if(!silent) toast("Harga masih sama / up-to-date ✓");
+    if(!silent) toast("Harga sama / up-to-date ✓");
   }
 }
 
@@ -379,7 +401,7 @@ function render(){
   else if(S.tab==="ledger")html+=viewLedger();
   else if(S.tab==="invest")html+=viewInvest();
   else html+=viewStats();
-  html+=`<p class="note">${S.updated?"Saved "+new Date(S.updated).toLocaleDateString():"Not saved"} · data stays on this device · educational tool</p>`;
+  html+=`<p class="note">${S.updated?"Saved "+new Date(S.updated).toLocaleDateString():"Not saved"} · data stays on this device</p>`;
   document.getElementById("app").innerHTML=html;
   const nav=document.getElementById("nav");nav.style.display="flex";
   nav.innerHTML=[["home","◎","Home"],["ledger","▤","Ledger"],["invest","▰","Invest"],["stats","◔","Stats"]]
@@ -393,7 +415,6 @@ function viewHome(){
   const ef=S.accounts.find(a=>a.app==="JP bank"); const efv=ef?toJ(Number(ef.amount)||0,ef.ccy):0;
   const efp=Math.max(0,Math.min(100,efv/(S.goalEmergency||1)*100));
   
-  // Calculate Cash split
   let cJPY=0, cIDR=0;
   S.accounts.forEach(a=>{
     const amt = Number(a.amount)||0;
@@ -403,7 +424,6 @@ function viewHome(){
     }
   });
 
-  // Panel Pengeluaran Bulanan (Monthly Expenses)
   let expHtml = `
   <div class="panel">
     <div class="ph"><h2>📊 Pengeluaran Bulan Ini</h2><span class="lbl">${monthLabel(S.cur)}</span></div>
@@ -541,16 +561,30 @@ function viewInvest(){
           <div class="g ${gain>=0?'gp':'gn'}">${gain>=0?'+':''}${nf(gain)} Rp · ${gp.toFixed(1)}%</div></div></div>`;}).join("")}
     <button class="addmini" onclick="openHold()">＋ ADD HOLDING</button>
   </div>
+  
   <div class="panel">
     <div class="ph"><h2>Cash & accounts</h2><span class="lbl">Kekayaan</span></div>
-    ${S.accounts.map(a=>`<div class="row">
-      <input class="f1" value="${esc(a.name)}" oninput="upAcc('${a.id}','name',this.value)">
-      <select class="ap" onchange="upAcc('${a.id}','ccy',this.value)" style="padding:8px 4px">${["JPY","IDR"].map(o=>`<option ${a.ccy===o?'selected':''}>${o}</option>`).join("")}</select>
-      <input class="vv" type="number" inputmode="decimal" value="${a.amount}" onchange="upAcc('${a.id}','amount',this.value)">
-      <button class="rm" onclick="rmAcc('${a.id}')">×</button></div>`).join("")}
-    <button class="addmini" onclick="addAcc()">＋ ADD ACCOUNT</button>
-    <div class="row"><span class="lbl f1">Kurs · 1 ¥ = ? Rp</span>
-      <input class="vv" type="number" inputmode="decimal" value="${S.kurs}" onchange="S.kurs=parseFloat(this.value)||0;persist();render()"></div>
+    <div style="padding:12px 14px">
+      ${S.accounts.map(a=>`
+        <div class="acc-card">
+          <div class="acc-row1">
+            <input class="acc-name" value="${esc(a.name)}" onchange="upAcc('${a.id}','name',this.value)" placeholder="Nama Akun">
+            <select class="acc-ccy" onchange="upAcc('${a.id}','ccy',this.value)">${["JPY","IDR"].map(o=>`<option ${a.ccy===o?'selected':''}>${o}</option>`).join("")}</select>
+            <button class="rm" onclick="rmAcc('${a.id}')" title="Hapus Akun">×</button>
+          </div>
+          <div class="acc-row2">
+            <span style="font-size:12px;color:var(--faint);font-family:'Spline Sans Mono'">Saldo:</span>
+            <input class="acc-amt" type="number" inputmode="decimal" value="${a.amount}" onchange="upAcc('${a.id}','amount',this.value)" placeholder="0">
+          </div>
+        </div>
+      `).join("")}
+      <button class="addmini" onclick="addAcc()" style="border:1px dashed var(--line); border-radius:12px; margin-top:4px">＋ TAMBAH AKUN</button>
+    </div>
+    
+    <div class="row" style="border-top:1px solid var(--line)">
+      <span class="lbl f1">Kurs · 1 ¥ = ? Rp</span>
+      <input class="vv" type="number" inputmode="decimal" value="${S.kurs}" onchange="S.kurs=parseFloat(this.value)||0;persist();render()" style="border:none;background:transparent;padding:0;text-align:right">
+    </div>
     <div class="tot"><span>Net worth</span><span>${disp(nw().net)}</span></div>
   </div>`;
 }
@@ -604,9 +638,23 @@ window.updTf = function(){
 
 /* ===== transaction sheet ===== */
 function openTx(id){editId=id||null;const t=id?MO().tx.find(x=>x.id===id):null;txDir=t?t.dir:"out";txCat=t?t.cat:"Groceries";drawTx(t);document.getElementById("ov").classList.add("show");if(!t)setTimeout(()=>{const a=document.getElementById(txDir==='tf'?'tfOut':'amt');if(a)a.focus();},120);}
+
 function drawTx(t){
   const cats=txDir==="out"?OUT_CATS:txDir==="in"?IN_CATS:TF_CATS;
   const isTf = txDir==="tf";
+  
+  let defAc = null, defAc2 = null;
+  if(!t){
+    if(txDir==="out") {
+       defAc = S.lastOutAccId;
+       if(!S.accounts.find(a=>a.id===defAc)) defAc = S.accounts.find(a=>a.name==='Dompet')?.id;
+    }
+    else if(txDir==="in") defAc = S.accounts.find(a=>a.name==='Yuchou')?.id;
+    else if(txDir==="tf") {
+      defAc = S.accounts.find(a=>a.name==='Yuchou')?.id;
+      defAc2 = S.accounts.find(a=>a.name==='Dompet')?.id;
+    }
+  }
   
   document.getElementById("sheet").innerHTML=`<div class="grip"></div>
   <div class="seg">
@@ -619,12 +667,12 @@ function drawTx(t){
   <div class="grid2" style="margin-top:0">
     <div class="field"><label>DARI Akun</label>
       <select id="txAcc" onchange="updTf()">
-        ${S.accounts.map(a=>`<option value="${a.id}" ${t&&t.accId===a.id?'selected':(!t&&a.name==='Yuchou'?'selected':'')}>${esc(a.name)} (${a.ccy})</option>`).join("")}
+        ${S.accounts.map(a=>`<option value="${a.id}" ${(t&&t.accId===a.id)||(!t&&defAc===a.id)?'selected':''}>${esc(a.name)} (${a.ccy})</option>`).join("")}
       </select>
     </div>
     <div class="field"><label>KE Akun</label>
       <select id="txAcc2" onchange="updTf()">
-        ${S.accounts.map(a=>`<option value="${a.id}" ${t&&t.accId2===a.id?'selected':(!t&&a.name==='Dompet'?'selected':'')}>${esc(a.name)} (${a.ccy})</option>`).join("")}
+        ${S.accounts.map(a=>`<option value="${a.id}" ${(t&&t.accId2===a.id)||(!t&&defAc2===a.id)?'selected':''}>${esc(a.name)} (${a.ccy})</option>`).join("")}
       </select>
     </div>
   </div>
@@ -642,7 +690,7 @@ function drawTx(t){
   <div class="field"><label>Nominal <span id="lblReg" class="tg"></span></label><input id="amt" class="big" type="number" inputmode="decimal" placeholder="0" value="${t?(t.rawAmt||t.amt):''}"></div>
   <div class="field"><label>Dompet / Akun</label>
     <select id="txAcc" onchange="updTf()">
-      ${S.accounts.map(a=>`<option value="${a.id}" ${t&&t.accId===a.id?'selected':(!t&&a.name==='Dompet'?'selected':'')}>${esc(a.name)} (${a.ccy})</option>`).join("")}
+      ${S.accounts.map(a=>`<option value="${a.id}" ${(t&&t.accId===a.id)||(!t&&defAc===a.id)?'selected':''}>${esc(a.name)} (${a.ccy})</option>`).join("")}
     </select>
   </div>
   `}
@@ -668,8 +716,13 @@ function setDir(d){
     if(d==='tf') { 
       const y = S.accounts.find(x=>x.name==='Yuchou'); if(y) ac=y.id; 
       const dm = S.accounts.find(x=>x.name==='Dompet'); if(dm) ac2=dm.id; 
-    } else { 
-      const dm = S.accounts.find(x=>x.name==='Dompet'); if(dm) ac=dm.id; 
+    } else if(d==='in') { 
+      const y = S.accounts.find(x=>x.name==='Yuchou'); if(y) ac=y.id; 
+    } else if(d==='out') { 
+      ac = S.lastOutAccId;
+      if(!S.accounts.find(x=>x.id===ac)) {
+         const dm = S.accounts.find(x=>x.name==='Dompet'); if(dm) ac=dm.id;
+      }
     }
   }
 
@@ -731,6 +784,7 @@ function saveTx(){
     }
 
     if(nA){ if(txDir==="in") nA.amount+=inputAmt; else nA.amount-=inputAmt; }
+    if(txDir==="out") S.lastOutAccId = accId;
   }
 
   persist();closeOv();render();toast("Tersimpan ✓");
