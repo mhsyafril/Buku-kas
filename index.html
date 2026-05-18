@@ -17,7 +17,7 @@
     --bg:#F2EEE1;--card:#FBF8EF;--card2:#F4EFE0;--line:#E2DBC4;--line2:#CFC6A8;
     --ink:#22251F;--muted:#7C7762;--faint:#A39C84;
     --teal:#1F5C56;--teal-d:#143E39;--clay:#B5613A;--gold:#C7913B;--violet:#7C5BAE;--blue:#3F7DB0;
-    --in:#2E7D5B;--out:#B5613A;--neg:#BC4B3C;
+    --in:#2E7D5B;--out:#B5613A;--neg:#BC4B3C;--tf:#3F7DB0;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   html,body{background:var(--bg);color:var(--ink);font-family:'Figtree',system-ui,sans-serif;overscroll-behavior:none}
@@ -60,7 +60,7 @@
   .sum-top{display:flex;justify-content:space-between;align-items:flex-end;padding:14px 15px 10px}
   .sum-top .bal{font-family:'Spline Sans Mono';font-weight:600;font-size:23px}
   .io{display:flex;gap:13px;font-family:'Spline Sans Mono';font-size:12px}
-  .io .i{color:var(--in)} .io .o{color:var(--out)}
+  .io .i{color:var(--in)} .io .o{color:var(--out)} .io .tr{color:var(--tf)}
 
   .tx{display:flex;align-items:center;gap:11px;padding:11px 15px;border-bottom:1px solid var(--line)}
   .tx:last-child{border-bottom:none}
@@ -72,7 +72,7 @@
   .tx .rt{text-align:right;font-family:'Spline Sans Mono';white-space:nowrap}
   .tx .rt .a{font-size:14.5px;font-weight:600}
   .tx .rt .b{font-size:10px;color:var(--faint);margin-top:2px}
-  .amt-in{color:var(--in)} .amt-out{color:var(--out)}
+  .amt-in{color:var(--in)} .amt-out{color:var(--out)} .amt-tf{color:var(--tf)}
   .empty{padding:28px 18px;text-align:center;color:var(--muted);font-size:13px;line-height:1.65}
 
   .legend{display:flex;flex-wrap:wrap;gap:9px 14px;padding:12px 16px 16px}
@@ -117,7 +117,7 @@
   .seg{display:flex;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:4px;margin-bottom:14px}
   .seg button{flex:1;padding:11px;border:none;background:transparent;border-radius:9px;font-family:'Figtree';font-weight:600;font-size:14px;color:var(--muted)}
   .seg button.act{background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.06)}
-  .seg button.act.outc{color:var(--out)}.seg button.act.inc{color:var(--in)}
+  .seg button.act.outc{color:var(--out)}.seg button.act.inc{color:var(--in)}.seg button.act.tfc{color:var(--tf)}
   .field{margin-bottom:13px}
   .field label{display:block;font-family:'Spline Sans Mono';font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
   .big{font-family:'Spline Sans Mono';font-weight:600;font-size:24px;text-align:center}
@@ -163,7 +163,8 @@ const STORE=(()=>{
 
 const OUT_CATS=["Groceries","Eating-Out","Shopping","Utilities","Saham","Other"];
 const IN_CATS=["Income","Saham","Other"];
-const COL={"Groceries":"#1F5C56","Eating-Out":"#B5613A","Shopping":"#7C5BAE","Utilities":"#C7913B","Saham":"#3F7DB0","Other":"#8A8569","Income":"#2E7D5B"};
+const TF_CATS=["Transfer"];
+const COL={"Groceries":"#1F5C56","Eating-Out":"#B5613A","Shopping":"#7C5BAE","Utilities":"#C7913B","Saham":"#3F7DB0","Other":"#8A8569","Income":"#2E7D5B","Transfer":"#3F7DB0"};
 const QUICK=[
   {l:"Tsuruha",d:"Tsuruha",c:"Groceries",dir:"out"},{l:"Morinaga",d:"Morinaga",c:"Groceries",dir:"out"},
   {l:"Onigiri",d:"Onigiri",c:"Eating-Out",dir:"out"},{l:"Apartemen",d:"Apartemen",c:"Utilities",dir:"out",a:26000},
@@ -171,6 +172,7 @@ const QUICK=[
   {l:"Listrik",d:"Listrik",c:"Utilities",dir:"out"},{l:"iPhone",d:"iPhone",c:"Utilities",dir:"out",a:5272},
   {l:"Data",d:"Data Internet",c:"Utilities",dir:"out",a:1000},{l:"Asuransi",d:"Asuransi kesehatan",c:"Utilities",dir:"out",a:2500},
   {l:"Mext ↓",d:"Mext",c:"Income",dir:"in",a:145000},{l:"Baito ↓",d:"Baito",c:"Income",dir:"in"},
+  {l:"Tarik ATM",d:"Tarik tunai Yuchou",c:"Transfer",dir:"tf"},{l:"Topup Paypay",d:"Isi Paypay",c:"Transfer",dir:"tf"},
 ];
 const MK=(y,m)=>y+"-"+String(m).padStart(2,"0");
 const u=()=>Math.random().toString(36).slice(2,9);
@@ -198,6 +200,8 @@ function DEFAULTS(){
       {id:u(),name:"Dompet",app:"Cash",ccy:"JPY",amount:0},
       {id:u(),name:"Paypay",app:"Paypay",ccy:"JPY",amount:0},
       {id:u(),name:"JCB",app:"Credit card",ccy:"JPY",amount:-43895},
+      {id:u(),name:"RDN IPOT",app:"Broker",ccy:"IDR",amount:0},
+      {id:u(),name:"RDN Stockbit",app:"Broker",ccy:"IDR",amount:0},
     ],
     holdings:[
       {id:u(),broker:"IPOT",ticker:"BRMS",lots:723,avg:900,last:900},
@@ -223,7 +227,13 @@ function elapsed(k){const n=new Date(),c=MK(n.getFullYear(),n.getMonth()+1);retu
 function MO(k){k=k||S.cur;if(!S.months[k])S.months[k]={start:0,tx:[]};return S.months[k];}
 function ord(k){return MO(k).tx.slice().sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);}
 function calc(k){const m=MO(k);let bal=m.start||0,inT=0,outT=0;const cats={};
-  ord(k).forEach(t=>{if(t.dir==="in"){bal+=t.amt;inT+=t.amt;}else{bal-=t.amt;outT+=t.amt;cats[t.cat]=(cats[t.cat]||0)+t.amt;}t._bal=bal;});
+  ord(k).forEach(t=>{
+    if(t.dir==="in"){bal+=t.amt;inT+=t.amt;}
+    else if(t.dir==="out"){bal-=t.amt;outT+=t.amt;cats[t.cat]=(cats[t.cat]||0)+t.amt;}
+    // tf (transfer) doesn't change overall ledger balance if we assume ledger tracks global flow, 
+    // but typically people ignore transfers in expense charts.
+    t._bal=bal;
+  });
   return {bal,inT,outT,cats};}
 const toJ=(a,c)=>c==="JPY"?a:a/(S.kurs||1);
 function holdVal(h){return (Number(h.lots)||0)*100*(Number(h.last)||0);} // IDR
@@ -368,10 +378,17 @@ function viewLedger(){
     ${tx.length?tx.map(t=>{
       const d=new Date(t.date);
       const acc = t.accId ? S.accounts.find(a=>a.id===t.accId) : null;
+      const acc2 = t.accId2 ? S.accounts.find(a=>a.id===t.accId2) : null;
+      let dtL = ``;
+      if(t.dir==="tf"){
+         dtL = `<span class="tg" style="margin-left:5px;background:#E2DBC4">${acc?esc(acc.name):'?'} ➔ ${acc2?esc(acc2.name):'?'}</span>`;
+      } else {
+         dtL = acc?`<span class="tg" style="margin-left:5px;background:#E2DBC4">${esc(acc.name)}</span>`:'';
+      }
       return `<div class="tx" onclick="openTx('${t.id}')">
       <div class="dt">${monthShort(t.date.slice(0,7))}<b>${d.getUTCDate()}</b></div>
-      <div class="mid"><div class="ds">${esc(t.desc)||"—"}</div><span class="tg">${t.cat}</span>${acc?`<span class="tg" style="margin-left:5px;background:#E2DBC4">${esc(acc.name)}</span>`:''}</div>
-      <div class="rt"><div class="a ${t.dir==='in'?'amt-in':'amt-out'}">${t.dir==='in'?'+':'−'}${nf(t.amt)}</div><div class="b">${nf(t._bal)}</div></div></div>`;}).join("")
+      <div class="mid"><div class="ds">${esc(t.desc)||"—"}</div><span class="tg">${t.cat}</span>${dtL}</div>
+      <div class="rt"><div class="a ${t.dir==='in'?'amt-in':t.dir==='out'?'amt-out':'amt-tf'}">${t.dir==='in'?'+':t.dir==='out'?'−':'⇋'}${nf(t.amt)}</div><div class="b">${nf(t._bal)}</div></div></div>`;}).join("")
       :`<div class="empty">Empty month. Carry-over: <b>${yen(MO().start||0)}</b><br><br>Tap ＋ to add a transaction.</div>`}
     <div class="row" style="border-top:1px solid var(--line2)"><span class="lbl f1">Saldo bulan lalu (carry)</span>
       <input class="vv" type="number" inputmode="numeric" value="${MO().start||0}" onchange="MO().start=parseFloat(this.value)||0;persist();render()"></div>
@@ -459,24 +476,53 @@ function viewStats(){
 /* ===== transaction sheet ===== */
 function openTx(id){editId=id||null;const t=id?MO().tx.find(x=>x.id===id):null;txDir=t?t.dir:"out";txCat=t?t.cat:"Groceries";drawTx(t);document.getElementById("ov").classList.add("show");if(!t)setTimeout(()=>{const a=document.getElementById("amt");if(a)a.focus();},120);}
 function drawTx(t){
-  const cats=txDir==="out"?OUT_CATS:IN_CATS;
+  const cats=txDir==="out"?OUT_CATS:txDir==="in"?IN_CATS:TF_CATS;
+  const isTf = txDir==="tf";
+  
   document.getElementById("sheet").innerHTML=`<div class="grip"></div>
-  <div class="seg"><button class="${txDir==='out'?'act outc':''}" onclick="setDir('out')">▼ Keluar</button><button class="${txDir==='in'?'act inc':''}" onclick="setDir('in')">▲ Masuk</button></div>
+  <div class="seg">
+    <button class="${txDir==='out'?'act outc':''}" onclick="setDir('out')">▼ Keluar</button>
+    <button class="${txDir==='in'?'act inc':''}" onclick="setDir('in')">▲ Masuk</button>
+    <button class="${txDir==='tf'?'act tfc':''}" onclick="setDir('tf')">⇋ Transfer</button>
+  </div>
   <div class="field"><label>Jumlah ¥</label><input id="amt" class="big" type="number" inputmode="numeric" placeholder="0" value="${t?t.amt:''}"></div>
   ${!t?`<div class="field"><label>Quick add</label><div class="chips">${QUICK.filter(q=>q.dir===txDir).map((q,i)=>`<button class="chip q" onclick="quick(${i})">${q.l}</button>`).join("")}</div></div>`:""}
-  <div class="field"><label>Keterangan</label><input id="desc" placeholder="e.g. Tsuruha" value="${t?esc(t.desc):''}"></div>
+  <div class="field"><label>Keterangan</label><input id="desc" placeholder="e.g. ${isTf?'Tarik tunai':'Tsuruha'}" value="${t?esc(t.desc):''}"></div>
+  
+  ${isTf ? `
+  <div class="grid2" style="margin-top:0">
+    <div class="field"><label>DARI Akun</label>
+      <select id="txAcc">
+        ${S.accounts.map(a=>`<option value="${a.id}" ${t&&t.accId===a.id?'selected':(!t&&a.name==='Yuchou'?'selected':'')}>${esc(a.name)} (${a.ccy})</option>`).join("")}
+      </select>
+    </div>
+    <div class="field"><label>KE Akun</label>
+      <select id="txAcc2">
+        ${S.accounts.map(a=>`<option value="${a.id}" ${t&&t.accId2===a.id?'selected':(!t&&a.name==='Dompet'?'selected':'')}>${esc(a.name)} (${a.ccy})</option>`).join("")}
+      </select>
+    </div>
+  </div>
+  ` : `
   <div class="field"><label>Dompet / Akun</label>
     <select id="txAcc">
       ${S.accounts.map(a=>`<option value="${a.id}" ${t&&t.accId===a.id?'selected':(!t&&a.name==='Dompet'?'selected':'')}>${esc(a.name)} (${a.ccy})</option>`).join("")}
     </select>
   </div>
+  `}
+  
   <div class="field"><label>Kategori</label><div class="chips" id="cc">${cats.map(k=>`<button class="chip ${txCat===k?'act':''}" onclick="setCat('${k}')">${k}</button>`).join("")}</div></div>
   <div class="field"><label>Tanggal</label><input id="date" type="date" value="${t?t.date:new Date().toISOString().slice(0,10)}"></div>
   <div class="acts">${t?`<button class="del" onclick="delTx('${t.id}')">Hapus</button>`:""}<button onclick="closeOv()">Batal</button><button class="save" onclick="saveTx()">Simpan</button></div>`;
 }
-function setDir(d){txDir=d;if((d==="out"?OUT_CATS:IN_CATS).indexOf(txCat)<0)txCat=d==="out"?"Groceries":"Income";
-  const t=editId?MO().tx.find(x=>x.id===editId):null;const a=val("amt"),ds=val("desc"),dt=val("date"),ac=val("txAcc");
-  drawTx(t?Object.assign({},t,{amt:a,desc:ds,date:dt,accId:ac}):null);if(!t){if(a)el("amt").value=a;if(ds)el("desc").value=ds;if(ac)el("txAcc").value=ac;}}
+
+function setDir(d){txDir=d;
+  if(d==="tf") txCat="Transfer";
+  else if((d==="out"?OUT_CATS:IN_CATS).indexOf(txCat)<0) txCat=d==="out"?"Groceries":"Income";
+  const t=editId?MO().tx.find(x=>x.id===editId):null;
+  const a=val("amt"),ds=val("desc"),dt=val("date"),ac=val("txAcc"),ac2=val("txAcc2");
+  drawTx(t?Object.assign({},t,{amt:a,desc:ds,date:dt,accId:ac,accId2:ac2}):null);
+  if(!t){if(a)el("amt").value=a;if(ds)el("desc").value=ds;if(ac)el("txAcc").value=ac;if(ac2&&el("txAcc2"))el("txAcc2").value=ac2;}
+}
 function setCat(k){txCat=k;[...document.querySelectorAll("#cc .chip")].forEach(b=>b.classList.toggle("act",b.textContent===k));}
 function quick(i){const q=QUICK.filter(x=>x.dir===txDir)[i];el("desc").value=q.d;setCat(q.c);if(q.a)el("amt").value=q.a;else el("amt").focus();}
 
@@ -484,29 +530,50 @@ function saveTx(){
   const amt=parseFloat(val("amt"));if(!amt||amt<=0){toast("Masukkan jumlah");return;}
   const desc=val("desc").trim(),date=val("date")||new Date().toISOString().slice(0,10);
   const accId=val("txAcc");
+  const accId2=txDir==="tf"?val("txAcc2"):null;
+
+  if(txDir==="tf" && accId===accId2){toast("Akun asal dan tujuan tidak boleh sama");return;}
 
   // Revert old account contribution if editing an existing transaction
   if(editId){
     const t=MO().tx.find(x=>x.id===editId);
-    if(t && t.accId){
-      const oldAcc=S.accounts.find(a=>a.id===t.accId);
-      if(oldAcc){
-        const oldAmtInCcy = oldAcc.ccy === "JPY" ? t.amt : t.amt * (S.kurs || 1);
-        if(t.dir === "in") oldAcc.amount -= oldAmtInCcy;
-        else oldAcc.amount += oldAmtInCcy;
+    if(t){
+      // revert old from account
+      if(t.accId){
+        const oldAcc=S.accounts.find(a=>a.id===t.accId);
+        if(oldAcc){
+          const oldAmtInCcy = oldAcc.ccy === "JPY" ? t.amt : t.amt * (S.kurs || 1);
+          if(t.dir === "in") oldAcc.amount -= oldAmtInCcy;
+          else oldAcc.amount += oldAmtInCcy; // "out" and "tf" act as withdrawal from accId
+        }
+      }
+      // revert old to account (if it was a transfer)
+      if(t.dir==="tf" && t.accId2){
+        const oldAcc2=S.accounts.find(a=>a.id===t.accId2);
+        if(oldAcc2){
+          const oldAmtInCcy2 = oldAcc2.ccy === "JPY" ? t.amt : t.amt * (S.kurs || 1);
+          oldAcc2.amount -= oldAmtInCcy2; // revert the deposit
+        }
       }
     }
-    Object.assign(t,{amt,desc,date,dir:txDir,cat:txCat,accId});
+    Object.assign(t,{amt,desc,date,dir:txDir,cat:txCat,accId,accId2});
   } else {
-    MO().tx.push({id:u(),amt,desc,date,dir:txDir,cat:txCat,accId});
+    MO().tx.push({id:u(),amt,desc,date,dir:txDir,cat:txCat,accId,accId2});
   }
 
-  // Deduct/Add from the newly selected account
+  // Deduct/Add from the newly selected account(s)
   const newAcc=S.accounts.find(a=>a.id===accId);
   if(newAcc){
     const amtInCcy = newAcc.ccy === "JPY" ? amt : amt * (S.kurs || 1);
     if(txDir === "in") newAcc.amount += amtInCcy;
-    else newAcc.amount -= amtInCcy;
+    else newAcc.amount -= amtInCcy; // for "out" and "tf"
+  }
+  if(txDir==="tf" && accId2){
+    const newAcc2=S.accounts.find(a=>a.id===accId2);
+    if(newAcc2){
+      const amtInCcy2 = newAcc2.ccy === "JPY" ? amt : amt * (S.kurs || 1);
+      newAcc2.amount += amtInCcy2; // transfer destination gets addition
+    }
   }
 
   persist();closeOv();render();toast(editId?"Diperbarui":"Tersimpan ✓");
@@ -515,12 +582,21 @@ function saveTx(){
 function delTx(id){
   if(!confirm("Hapus transaksi ini?"))return;
   const t=MO().tx.find(x=>x.id===id);
-  if(t && t.accId){
-    const acc=S.accounts.find(a=>a.id===t.accId);
-    if(acc){
-      const amtInCcy = acc.ccy === "JPY" ? t.amt : t.amt * (S.kurs || 1);
-      if(t.dir === "in") acc.amount -= amtInCcy;
-      else acc.amount += amtInCcy;
+  if(t){
+    if(t.accId){
+      const acc=S.accounts.find(a=>a.id===t.accId);
+      if(acc){
+        const amtInCcy = acc.ccy === "JPY" ? t.amt : t.amt * (S.kurs || 1);
+        if(t.dir === "in") acc.amount -= amtInCcy;
+        else acc.amount += amtInCcy; // refund to source
+      }
+    }
+    if(t.dir==="tf" && t.accId2){
+      const acc2=S.accounts.find(a=>a.id===t.accId2);
+      if(acc2){
+        const amtInCcy2 = acc2.ccy === "JPY" ? t.amt : t.amt * (S.kurs || 1);
+        acc2.amount -= amtInCcy2; // remove from destination
+      }
     }
   }
   MO().tx=MO().tx.filter(x=>x.id!==id);
