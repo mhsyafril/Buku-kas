@@ -268,57 +268,58 @@ function toast(t){const e=document.getElementById("toast");e.textContent=t;e.cla
 /* ===== BATCH REALTIME API (YEN & SAHAM) ===== */
 async function fetchMarketData(silent=false){
   if(!silent) toast("🔄 Sinkronisasi pasar real-time...");
+  let upK = false, upS = 0;
+  
   try {
-    // 1. Kumpulkan semua kode yang butuh di-update (Kurs JPYIDR + Semua Saham)
-    let symbols = ["JPYIDR=X"];
-    S.holdings.forEach(h => {
-      let t = h.ticker.toUpperCase().trim();
-      // Otomatis tambah .JK jika saham Indonesia (4 huruf tanpa titik)
-      if(t.length === 4 && !t.includes(".")) t += ".JK";
-      if(!symbols.includes(t)) symbols.push(t);
-    });
+    // 1. Fetch Kurs (Sangat Stabil: open.er-api)
+    const resKurs = await fetch("https://open.er-api.com/v6/latest/JPY", {cache: "no-store"});
+    if(resKurs.ok){
+      const dataK = await resKurs.json();
+      if(dataK && dataK.rates && dataK.rates.IDR){
+        const nk = parseFloat(dataK.rates.IDR.toFixed(2));
+        if(S.kurs !== nk) { S.kurs = nk; upK = true; }
+      }
+    }
+  } catch(e) { console.log("Gagal Kurs", e); }
 
-    // 2. Tembak Yahoo Finance Quote API sekaligus (Batch)
-    const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols.join(",")}`;
-    // Proxy dengan Anti-Cache (timestamp) agar harga 100% terbaru
-    const proxyUrl = `https://api.allorigins.win/get?disableCache=true&cb=${Date.now()}&url=${encodeURIComponent(url)}`;
-    
-    const res = await fetch(proxyUrl);
-    if(!res.ok) throw "Gagal HTTP";
-    const data = await res.json();
-    const yh = JSON.parse(data.contents);
-    
-    let upS = 0; let upK = false;
-    
-    // 3. Pasangkan hasil API ke dalam data lokal kita
-    if(yh && yh.quoteResponse && yh.quoteResponse.result) {
-      yh.quoteResponse.result.forEach(q => {
-        if(q.symbol === "JPYIDR=X" && q.regularMarketPrice) {
-          let nk = parseFloat(q.regularMarketPrice.toFixed(2));
-          if(S.kurs !== nk) { S.kurs = nk; upK = true; }
-        } else {
-          S.holdings.forEach(h => {
-            let ht = h.ticker.toUpperCase().trim();
-            let htJk = (ht.length === 4 && !ht.includes(".")) ? ht + ".JK" : ht;
-            if(htJk === q.symbol && q.regularMarketPrice) {
-              let nl = parseFloat(q.regularMarketPrice);
-              if(h.last !== nl) { h.last = nl; upS++; }
-            }
-          });
-        }
+  try {
+    // 2. Fetch Saham (Raw AllOrigins -> Bypass Cache Proxy)
+    if(S.holdings.length > 0) {
+      let symbols = [];
+      S.holdings.forEach(h => {
+        let t = h.ticker.toUpperCase().trim();
+        if(t.length === 4 && !t.includes(".")) t += ".JK"; // Deteksi auto Saham Indo
+        if(!symbols.includes(t)) symbols.push(t);
       });
       
-      // 4. Update Tampilan
-      if(upK || upS > 0) {
-        persist(); render();
-        if(!silent) toast(`✓ Sukses: Kurs & ${upS} saham diupdate!`);
-      } else {
-        if(!silent) toast("Harga masih sama / up-to-date ✓");
+      const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols.join(",")}`;
+      // Endpoint "raw" me-return langsung JSON aslinya tanpa dibungkus .contents
+      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}&_=${Date.now()}`;
+      
+      const resS = await fetch(proxyUrl, {cache: "no-store"});
+      if(resS.ok){
+        const yh = await resS.json();
+        if(yh && yh.quoteResponse && yh.quoteResponse.result) {
+          yh.quoteResponse.result.forEach(q => {
+            S.holdings.forEach(h => {
+              let ht = h.ticker.toUpperCase().trim();
+              let htJk = (ht.length === 4 && !ht.includes(".")) ? ht + ".JK" : ht;
+              if(htJk === q.symbol && q.regularMarketPrice) {
+                let nl = parseFloat(q.regularMarketPrice);
+                if(h.last !== nl) { h.last = nl; upS++; }
+              }
+            });
+          });
+        }
       }
-    } else throw "Format API Yahoo berubah";
-  } catch(e) {
-    console.log("Fetch Market Error:", e);
-    if(!silent) toast("⚠️ Gagal mengambil data pasar dari internet.");
+    }
+  } catch(e) { console.log("Gagal Saham", e); }
+
+  if(upK || upS > 0) {
+    persist(); render();
+    if(!silent) toast(`✓ Sukses: Kurs & ${upS} saham diupdate!`);
+  } else {
+    if(!silent) toast("Harga masih sama / up-to-date ✓");
   }
 }
 
@@ -391,6 +392,43 @@ function viewHome(){
   const conc=n.assets?n.stocks/n.assets*100:0;
   const ef=S.accounts.find(a=>a.app==="JP bank"); const efv=ef?toJ(Number(ef.amount)||0,ef.ccy):0;
   const efp=Math.max(0,Math.min(100,efv/(S.goalEmergency||1)*100));
+  
+  // Calculate Cash split
+  let cJPY=0, cIDR=0;
+  S.accounts.forEach(a=>{
+    const amt = Number(a.amount)||0;
+    if(amt>=0){
+      if(a.ccy==='JPY') cJPY+=amt;
+      else if(a.ccy==='IDR') cIDR+=amt;
+    }
+  });
+
+  // Panel Pengeluaran Bulanan (Monthly Expenses)
+  let expHtml = `
+  <div class="panel">
+    <div class="ph"><h2>📊 Pengeluaran Bulan Ini</h2><span class="lbl">${monthLabel(S.cur)}</span></div>
+    <div style="padding:16px 15px">
+      <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+        <div class="big" style="color:var(--out)">${disp(c.outT)}</div>
+        <div style="font-size:12px; color:var(--muted); font-family:'Spline Sans Mono'">Sisa: ${disp(c.inT - c.outT, false)}</div>
+      </div>
+      <div style="height:8px;background:var(--card2);border-radius:4px;overflow:hidden;margin:12px 0;display:flex">
+        ${Object.keys(c.cats).length ? Object.keys(c.cats).sort((a,b)=>c.cats[b]-c.cats[a]).map(k=>`<div style="height:100%;width:${(c.cats[k]/c.outT*100)}%;background:${COL[k]||'#8A8569'}"></div>`).join('') : '<div style="width:100%;background:var(--line)"></div>'}
+      </div>
+      <div style="margin-top:12px">
+        ${Object.keys(c.cats).length ? Object.keys(c.cats).sort((a,b)=>c.cats[b]-c.cats[a]).slice(0,4).map(k=>`
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:13px;align-items:center;">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${COL[k]||'#8A8569'}"></span>
+              ${k}
+            </div>
+            <span class="mono">${disp(c.cats[k], false)}</span>
+          </div>
+        `).join('') : '<div class="empty" style="padding:0">Belum ada pengeluaran bulan ini.</div>'}
+      </div>
+    </div>
+  </div>`;
+
   return `
   ${S.showInstall?`<div class="install"><div>📲 <b>Make it an app:</b> open this in Chrome → ⋮ menu → <b>Add to Home screen</b>.</div><button class="x" onclick="S.showInstall=false;persist();render()">×</button></div>`:""}
   <div class="hero">
@@ -402,20 +440,29 @@ function viewHome(){
   <div class="grid2">
     <div class="card"><div class="k">Investments</div><div class="v">${disp(n.stocks)}</div><div class="s">${conc.toFixed(0)}% of assets</div></div>
     <div class="card"><div class="k">Cash</div><div class="v">${disp(n.cash)}</div><div class="s">across accounts</div></div>
-    <div class="card"><div class="k">Debt (JCB)</div><div class="v" style="color:var(--neg)">−${disp(n.debt)}</div><div class="s">pay in full</div></div>
-    <div class="card"><div class="k">This month</div><div class="v" style="color:${c.inT-c.outT>=0?'var(--in)':'var(--neg)'}">${c.inT-c.outT>=0?'+':'−'}${disp(Math.abs(c.inT-c.outT))}</div><div class="s">in − out</div></div>
   </div>
+  
+  <div class="panel">
+    <div class="ph"><h2>💵 Saldo Tersedia</h2><span class="lbl">Uang Tunai & Rekening</span></div>
+    <div style="padding:14px 15px">
+      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:8px"><span class="mk" style="width:24px;height:24px;font-size:11px;border-radius:6px;background:var(--teal)">¥</span> Yen (JPY)</div>
+        <span class="mono" style="font-size:15px;font-weight:600">${yen(cJPY)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div style="display:flex;align-items:center;gap:8px"><span class="mk" style="width:24px;height:24px;font-size:11px;border-radius:6px;background:var(--in)">Rp</span> Rupiah (IDR)</div>
+        <span class="mono" style="font-size:15px;font-weight:600">${rp(cIDR)}</span>
+      </div>
+    </div>
+  </div>
+
+  ${expHtml}
+
   <div class="panel">
     <div class="ph"><h2>Emergency fund</h2><span class="lbl">goal ${S.viewCcy==='IDR'?rp(S.goalEmergency*S.kurs):k1(S.goalEmergency)}</span></div>
     <div style="padding:16px 15px">
       <div style="height:10px;background:var(--card2);border-radius:6px;overflow:hidden;border:1px solid var(--line)"><i style="display:block;height:100%;width:${efp}%;background:linear-gradient(90deg,#1F5C56,#2E7D5B)"></i></div>
       <div style="display:flex;justify-content:space-between;font-family:'Spline Sans Mono';font-size:12px;color:var(--muted);margin-top:10px"><span>${disp(efv)} / ${disp(S.goalEmergency)}</span><span>${efp.toFixed(0)}%</span></div>
-    </div>
-  </div>
-  <div class="panel">
-    <div class="ph"><h2>Concentration risk</h2><span class="lbl">stocks ÷ assets</span></div>
-    <div class="gauge-wrap">${gauge(conc)}
-      <p style="font-size:12px;color:var(--muted);text-align:center;line-height:1.6;margin-top:6px">${conc>85?"Almost everything is in 2 stocks. Build the cash buffer before adding more.":conc>60?"Heavily concentrated — keep diversifying as the buffer grows.":"Reasonably balanced."}</p>
     </div>
   </div>`;
 }
@@ -468,6 +515,7 @@ function viewLedger(){
 function viewInvest(){
   const tot=S.holdings.reduce((s,h)=>s+holdJ(h),0);
   const items=S.holdings.map(h=>({label:h.broker+" "+h.ticker,val:holdJ(h),color:COL[Object.keys(COL)[(h.ticker.charCodeAt(0))%6]]||'#3F7DB0'}));
+  // stable colors per holding
   const pal=["#1F5C56","#B5613A","#3F7DB0","#C7913B","#7C5BAE","#2E7D5B"];
   items.forEach((it,i)=>it.color=pal[i%pal.length]);
   return `
