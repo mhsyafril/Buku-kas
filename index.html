@@ -29,7 +29,8 @@
 
   header{padding:18px 0 4px;display:flex;align-items:center;justify-content:space-between}
   .brand{display:flex;align-items:center;gap:9px}
-  .mk{width:30px;height:30px;border-radius:9px;background:var(--teal);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Bricolage Grotesque';font-weight:800;font-size:13px}
+  .mk{width:32px;height:32px;border-radius:10px;background:var(--teal);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Bricolage Grotesque';font-weight:800;font-size:14px;cursor:pointer;border:2px solid transparent;transition:.2s}
+  .mk:active{transform:scale(.9)}
   .brand h1{font-family:'Bricolage Grotesque';font-weight:800;font-size:19px;letter-spacing:-.3px}
   .pill{font-family:'Spline Sans Mono';font-size:9.5px;letter-spacing:.08em;color:var(--faint);padding:5px 9px;border:1px solid var(--line);border-radius:20px;background:var(--card)}
   .pill.on{color:var(--in);border-color:rgba(46,125,91,.4)}
@@ -44,7 +45,7 @@
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:12px}
   .card{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:14px}
   .card .k{font-family:'Spline Sans Mono';font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
-  .card .v{font-family:'Spline Sans Mono';font-weight:600;font-size:19px;margin-top:6px}
+  .card .v{font-family:'Spline Sans Mono';font-weight:600;font-size:19px;margin-top:6px;word-break:break-all}
   .card .s{font-size:11px;color:var(--faint);margin-top:3px}
 
   .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;margin-top:14px;overflow:hidden}
@@ -119,7 +120,7 @@
   .seg button.act{background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.06)}
   .seg button.act.outc{color:var(--out)}.seg button.act.inc{color:var(--in)}.seg button.act.tfc{color:var(--tf)}
   .field{margin-bottom:13px}
-  .field label{display:block;font-family:'Spline Sans Mono';font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  .field label{display:flex;justify-content:space-between;font-family:'Spline Sans Mono';font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
   .big{font-family:'Spline Sans Mono';font-weight:600;font-size:24px;text-align:center}
   .chips{display:flex;flex-wrap:wrap;gap:7px}
   .chip{padding:9px 13px;border:1px solid var(--line2);background:var(--card);border-radius:20px;font-size:13px;color:var(--ink)}
@@ -151,7 +152,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-/* ===== storage: window.storage inside Claude, localStorage on a real phone ===== */
+/* ===== storage: localStorage (Offline & Aman di Device) ===== */
 const KEY="buku-kas-app-v1";
 const STORE=(()=>{
   if(typeof window!=="undefined"&&window.storage&&typeof window.storage.get==="function")
@@ -179,29 +180,29 @@ const u=()=>Math.random().toString(36).slice(2,9);
 
 function DEFAULTS(){
   const fixed=m=>[
-    {id:u(),date:m+"-01",desc:"Mext (scholarship)",amt:145000,dir:"in",cat:"Income"},
-    {id:u(),date:m+"-05",desc:"Apartemen",amt:26000,dir:"out",cat:"Utilities"},
-    {id:u(),date:m+"-05",desc:"Asuransi kesehatan",amt:2500,dir:"out",cat:"Utilities"},
-    {id:u(),date:m+"-08",desc:"Gas",amt:5000,dir:"out",cat:"Utilities"},
-    {id:u(),date:m+"-08",desc:"Listrik",amt:3000,dir:"out",cat:"Utilities"},
-    {id:u(),date:m+"-08",desc:"Air",amt:4950,dir:"out",cat:"Utilities"},
-    {id:u(),date:m+"-10",desc:"iPhone + Data",amt:6272,dir:"out",cat:"Utilities"},
+    {id:u(),date:m+"-01",desc:"Mext (scholarship)",amt:145000,rawAmt:145000,dir:"in",cat:"Income"},
+    {id:u(),date:m+"-05",desc:"Apartemen",amt:26000,rawAmt:26000,dir:"out",cat:"Utilities"},
+    {id:u(),date:m+"-05",desc:"Asuransi kesehatan",amt:2500,rawAmt:2500,dir:"out",cat:"Utilities"},
+    {id:u(),date:m+"-08",desc:"Gas",amt:5000,rawAmt:5000,dir:"out",cat:"Utilities"},
+    {id:u(),date:m+"-08",desc:"Listrik",amt:3000,rawAmt:3000,dir:"out",cat:"Utilities"},
+    {id:u(),date:m+"-08",desc:"Air",amt:4950,rawAmt:4950,dir:"out",cat:"Utilities"},
+    {id:u(),date:m+"-10",desc:"iPhone + Data",amt:6272,rawAmt:6272,dir:"out",cat:"Utilities"},
   ];
   return {
-    kurs:106.71, cur:MK(2026,5), tab:"home", showInstall:true,
+    kurs:106.71, viewCcy:"JPY", cur:MK(2026,5), tab:"home", showInstall:true,
     months:{ "2026-05":{start:11027,tx:[
       ...fixed("2026-05"),
-      {id:u(),date:"2026-05-15",desc:"Baito (part-time)",amt:50000,dir:"in",cat:"Income"},
-      {id:u(),date:"2026-05-20",desc:"Bayar JCB (credit card)",amt:43895,dir:"out",cat:"Other"},
+      {id:u(),date:"2026-05-15",desc:"Baito (part-time)",amt:50000,rawAmt:50000,dir:"in",cat:"Income"},
+      {id:u(),date:"2026-05-20",desc:"Bayar JCB (credit card)",amt:43895,rawAmt:43895,dir:"out",cat:"Other"},
     ]} },
     accounts:[
       {id:u(),name:"Yuchou",app:"JP bank",ccy:"JPY",amount:11027},
       {id:u(),name:"BNI",app:"ID bank",ccy:"IDR",amount:450000},
+      {id:u(),name:"RDN IPOT",app:"Broker",ccy:"IDR",amount:0},
+      {id:u(),name:"RDN Stockbit",app:"Broker",ccy:"IDR",amount:0},
       {id:u(),name:"Dompet",app:"Cash",ccy:"JPY",amount:0},
       {id:u(),name:"Paypay",app:"Paypay",ccy:"JPY",amount:0},
       {id:u(),name:"JCB",app:"Credit card",ccy:"JPY",amount:-43895},
-      {id:u(),name:"RDN IPOT",app:"Broker",ccy:"IDR",amount:0},
-      {id:u(),name:"RDN Stockbit",app:"Broker",ccy:"IDR",amount:0},
     ],
     holdings:[
       {id:u(),broker:"IPOT",ticker:"BRMS",lots:723,avg:900,last:900},
@@ -219,6 +220,15 @@ const nf=n=>Math.round(n).toLocaleString("en-US");
 const k1=n=>{n=Math.round(n);return Math.abs(n)>=1e6?(n/1e6).toFixed(2)+"M":Math.abs(n)>=1000?(n/1000).toFixed(0)+"k":""+n;};
 const yen=n=>"¥"+nf(n);
 const rp=n=>"Rp"+nf(n);
+
+// DYNAMIC FORMATTER (YEN ↔ IDR)
+const disp=(j,prefix=true)=>{
+  const isIDR = (S.viewCcy==="IDR");
+  const v = isIDR ? j*(S.kurs||1) : j;
+  if(prefix) return isIDR ? rp(v) : yen(v);
+  return nf(v);
+};
+
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const monthLabel=k=>{const[y,m]=k.split("-");return new Date(y,m-1,1).toLocaleString("en-US",{month:"long"})+" "+y;};
 const monthShort=k=>{const[y,m]=k.split("-");return new Date(y,m-1,1).toLocaleString("en-US",{month:"short"});};
@@ -230,8 +240,6 @@ function calc(k){const m=MO(k);let bal=m.start||0,inT=0,outT=0;const cats={};
   ord(k).forEach(t=>{
     if(t.dir==="in"){bal+=t.amt;inT+=t.amt;}
     else if(t.dir==="out"){bal-=t.amt;outT+=t.amt;cats[t.cat]=(cats[t.cat]||0)+t.amt;}
-    // tf (transfer) doesn't change overall ledger balance if we assume ledger tracks global flow, 
-    // but typically people ignore transfers in expense charts.
     t._bal=bal;
   });
   return {bal,inT,outT,cats};}
@@ -252,7 +260,7 @@ function persist(){
   clearTimeout(saveT);
   saveT=setTimeout(async()=>{await STORE.set(KEY,JSON.stringify(S));if(p){p.textContent="saved";p.classList.add("on");}},400);
 }
-async function load(){const v=await STORE.get(KEY);if(v){try{S=Object.assign(DEFAULTS(),JSON.parse(v));}catch(e){}}}
+async function load(){const v=await STORE.get(KEY);if(v){try{S=Object.assign(DEFAULTS(),JSON.parse(v));S.viewCcy=S.viewCcy||"JPY";}catch(e){}}}
 function toast(t){const e=document.getElementById("toast");e.textContent=t;e.classList.add("show");clearTimeout(e._h);e._h=setTimeout(()=>e.classList.remove("show"),1900);}
 
 /* ===== SVG charts ===== */
@@ -302,9 +310,11 @@ function gauge(pct){
 }
 
 /* ===== views ===== */
+function toggleViewCcy(){ S.viewCcy=S.viewCcy==='IDR'?'JPY':'IDR';persist();render(); }
+
 function render(){
   document.getElementById("fab").style.display=(S.tab==="ledger")?"flex":"none";
-  let html=`<header><div class="brand"><div class="mk">Rp</div><h1>Buku Kas</h1></div><span class="pill on" id="savePill">saved</span></header>`;
+  let html=`<header><div class="brand"><button class="mk" onclick="toggleViewCcy()" title="Ganti mata uang">${S.viewCcy==='IDR'?'Rp':'¥'}</button><h1>Buku Kas</h1></div><span class="pill on" id="savePill">saved</span></header>`;
   if(S.tab==="home")html+=viewHome();
   else if(S.tab==="ledger")html+=viewLedger();
   else if(S.tab==="invest")html+=viewInvest();
@@ -323,24 +333,24 @@ function viewHome(){
   const ef=S.accounts.find(a=>a.app==="JP bank"); const efv=ef?toJ(Number(ef.amount)||0,ef.ccy):0;
   const efp=Math.max(0,Math.min(100,efv/(S.goalEmergency||1)*100));
   return `
-  ${S.showInstall?`<div class="install"><div>📲 <b>Make it an app:</b> open this in Chrome → ⋮ menu → <b>Add to Home screen</b>. It runs full-screen offline, with its own icon.</div><button class="x" onclick="S.showInstall=false;persist();render()">×</button></div>`:""}
+  ${S.showInstall?`<div class="install"><div>📲 <b>Make it an app:</b> open this in Chrome → ⋮ menu → <b>Add to Home screen</b>.</div><button class="x" onclick="S.showInstall=false;persist();render()">×</button></div>`:""}
   <div class="hero">
     <div class="lbl">Kekayaan · Net worth</div>
-    <div class="nw">${yen(n.net)}</div>
-    <div class="nw-sub">≈ ${rp(n.net*S.kurs)} · 1¥=${S.kurs}Rp</div>
+    <div class="nw">${disp(n.net)}</div>
+    <div class="nw-sub">≈ ${S.viewCcy==='IDR'?yen(n.net):rp(n.net*S.kurs)} · 1¥=${S.kurs}Rp</div>
     <div class="spark">${areaChart(snap.length?snap:[n.net],460,70)}</div>
   </div>
   <div class="grid2">
-    <div class="card"><div class="k">Investments</div><div class="v">${yen(n.stocks)}</div><div class="s">${conc.toFixed(0)}% of assets</div></div>
-    <div class="card"><div class="k">Cash</div><div class="v">${yen(n.cash)}</div><div class="s">across accounts</div></div>
-    <div class="card"><div class="k">Debt (JCB)</div><div class="v" style="color:var(--neg)">−${yen(n.debt)}</div><div class="s">pay in full</div></div>
-    <div class="card"><div class="k">This month</div><div class="v" style="color:${c.inT-c.outT>=0?'var(--in)':'var(--neg)'}">${c.inT-c.outT>=0?'+':'−'}${yen(Math.abs(c.inT-c.outT))}</div><div class="s">in − out</div></div>
+    <div class="card"><div class="k">Investments</div><div class="v">${disp(n.stocks)}</div><div class="s">${conc.toFixed(0)}% of assets</div></div>
+    <div class="card"><div class="k">Cash</div><div class="v">${disp(n.cash)}</div><div class="s">across accounts</div></div>
+    <div class="card"><div class="k">Debt (JCB)</div><div class="v" style="color:var(--neg)">−${disp(n.debt)}</div><div class="s">pay in full</div></div>
+    <div class="card"><div class="k">This month</div><div class="v" style="color:${c.inT-c.outT>=0?'var(--in)':'var(--neg)'}">${c.inT-c.outT>=0?'+':'−'}${disp(Math.abs(c.inT-c.outT))}</div><div class="s">in − out</div></div>
   </div>
   <div class="panel">
-    <div class="ph"><h2>Emergency fund</h2><span class="lbl">goal ${k1(S.goalEmergency)}</span></div>
+    <div class="ph"><h2>Emergency fund</h2><span class="lbl">goal ${S.viewCcy==='IDR'?rp(S.goalEmergency*S.kurs):k1(S.goalEmergency)}</span></div>
     <div style="padding:16px 15px">
       <div style="height:10px;background:var(--card2);border-radius:6px;overflow:hidden;border:1px solid var(--line)"><i style="display:block;height:100%;width:${efp}%;background:linear-gradient(90deg,#1F5C56,#2E7D5B)"></i></div>
-      <div style="display:flex;justify-content:space-between;font-family:'Spline Sans Mono';font-size:12px;color:var(--muted);margin-top:10px"><span>${yen(efv)} / ${yen(S.goalEmergency)}</span><span>${efp.toFixed(0)}%</span></div>
+      <div style="display:flex;justify-content:space-between;font-family:'Spline Sans Mono';font-size:12px;color:var(--muted);margin-top:10px"><span>${disp(efv)} / ${disp(S.goalEmergency)}</span><span>${efp.toFixed(0)}%</span></div>
     </div>
   </div>
   <div class="panel">
@@ -361,15 +371,15 @@ function viewLedger(){
     <button class="madd" onclick="newMonth()">＋BLN</button>
   </div>
   <div class="panel">
-    <div class="sum-top"><div><div class="lbl">Saldo akhir</div><div class="bal">${yen(c.bal)}</div></div>
-      <div class="io"><span class="i">▲ ${nf(c.inT)}</span><span class="o">▼ ${nf(c.outT)}</span></div></div>
+    <div class="sum-top"><div><div class="lbl">Saldo akhir</div><div class="bal">${disp(c.bal)}</div></div>
+      <div class="io"><span class="i">▲ ${disp(c.inT,false)}</span><span class="o">▼ ${disp(c.outT,false)}</span></div></div>
     <div style="padding:2px 12px 14px">
       ${Object.keys(c.cats).length?Object.keys(c.cats).sort((a,b)=>c.cats[b]-c.cats[a]).map(k=>{
         const v=c.cats[k],p=c.outT?v/c.outT*100:0;
         return `<div style="display:flex;align-items:center;gap:10px;padding:8px 4px">
           <span style="width:88px;font-size:12.5px;font-weight:500">${k}</span>
           <span style="flex:1;height:7px;background:var(--card2);border-radius:5px;overflow:hidden"><i style="display:block;height:100%;width:${p.toFixed(0)}%;background:${COL[k]||'#8A8569'}"></i></span>
-          <span class="mono" style="font-size:12px;min-width:96px;text-align:right">${nf(v)} <span style="color:var(--faint);font-size:10px">${p.toFixed(0)}% · ${nf(v/elapsed(S.cur))}/d</span></span></div>`;
+          <span class="mono" style="font-size:12px;min-width:96px;text-align:right">${disp(v,false)} <span style="color:var(--faint);font-size:10px">${p.toFixed(0)}%</span></span></div>`;
       }).join(""):`<div class="empty" style="padding:14px">No spending yet — tap ＋</div>`}
     </div>
   </div>
@@ -382,14 +392,15 @@ function viewLedger(){
       let dtL = ``;
       if(t.dir==="tf"){
          dtL = `<span class="tg" style="margin-left:5px;background:#E2DBC4">${acc?esc(acc.name):'?'} ➔ ${acc2?esc(acc2.name):'?'}</span>`;
+         if(t.tfFee) dtL += ` <span class="tg" style="color:var(--out)">Fee ${t.tfFee}</span>`;
       } else {
          dtL = acc?`<span class="tg" style="margin-left:5px;background:#E2DBC4">${esc(acc.name)}</span>`:'';
       }
       return `<div class="tx" onclick="openTx('${t.id}')">
       <div class="dt">${monthShort(t.date.slice(0,7))}<b>${d.getUTCDate()}</b></div>
       <div class="mid"><div class="ds">${esc(t.desc)||"—"}</div><span class="tg">${t.cat}</span>${dtL}</div>
-      <div class="rt"><div class="a ${t.dir==='in'?'amt-in':t.dir==='out'?'amt-out':'amt-tf'}">${t.dir==='in'?'+':t.dir==='out'?'−':'⇋'}${nf(t.amt)}</div><div class="b">${nf(t._bal)}</div></div></div>`;}).join("")
-      :`<div class="empty">Empty month. Carry-over: <b>${yen(MO().start||0)}</b><br><br>Tap ＋ to add a transaction.</div>`}
+      <div class="rt"><div class="a ${t.dir==='in'?'amt-in':t.dir==='out'?'amt-out':'amt-tf'}">${t.dir==='in'?'+':t.dir==='out'?'−':'⇋'}${disp(t.amt,false)}</div><div class="b">${disp(t._bal,false)}</div></div></div>`;}).join("")
+      :`<div class="empty">Empty month. Carry-over: <b>${disp(MO().start||0)}</b><br><br>Tap ＋ to add a transaction.</div>`}
     <div class="row" style="border-top:1px solid var(--line2)"><span class="lbl f1">Saldo bulan lalu (carry)</span>
       <input class="vv" type="number" inputmode="numeric" value="${MO().start||0}" onchange="MO().start=parseFloat(this.value)||0;persist();render()"></div>
   </div>`;
@@ -404,8 +415,8 @@ function viewInvest(){
   return `
   <div class="hero" style="background:linear-gradient(155deg,#3F7DB0,#2C5876)">
     <div class="lbl" style="color:rgba(242,238,225,.55)">Portfolio value</div>
-    <div class="nw">${yen(tot)}</div>
-    <div class="nw-sub">≈ ${rp(tot*S.kurs)}</div>
+    <div class="nw">${disp(tot)}</div>
+    <div class="nw-sub">≈ ${S.viewCcy==='IDR'?yen(tot):rp(tot*S.kurs)}</div>
   </div>
   <div class="panel">
     <div class="ph"><h2>Allocation</h2><span class="lbl">by holding</span></div>
@@ -420,7 +431,7 @@ function viewInvest(){
       return `<div class="hold" onclick="openHold('${h.id}')">
         <div class="hm"><div class="t">${esc(h.broker)} · ${esc(h.ticker)}</div>
           <div class="s">${nf(h.lots)} lot · Rp${nf(h.last)} (avg ${nf(h.avg)})</div></div>
-        <div class="hv"><div class="a">${yen(vJ)}</div>
+        <div class="hv"><div class="a">${disp(vJ)}</div>
           <div class="g ${gain>=0?'gp':'gn'}">${gain>=0?'+':''}${nf(gain)} Rp · ${gp.toFixed(1)}%</div></div></div>`;}).join("")}
     <button class="addmini" onclick="openHold()">＋ ADD HOLDING</button>
   </div>
@@ -429,12 +440,12 @@ function viewInvest(){
     ${S.accounts.map(a=>`<div class="row">
       <input class="f1" value="${esc(a.name)}" oninput="upAcc('${a.id}','name',this.value)">
       <select class="ap" onchange="upAcc('${a.id}','ccy',this.value)" style="padding:8px 4px">${["JPY","IDR"].map(o=>`<option ${a.ccy===o?'selected':''}>${o}</option>`).join("")}</select>
-      <input class="vv" type="number" inputmode="numeric" value="${a.amount}" onchange="upAcc('${a.id}','amount',this.value)">
+      <input class="vv" type="number" inputmode="decimal" value="${a.amount}" onchange="upAcc('${a.id}','amount',this.value)">
       <button class="rm" onclick="rmAcc('${a.id}')">×</button></div>`).join("")}
     <button class="addmini" onclick="addAcc()">＋ ADD ACCOUNT</button>
     <div class="row"><span class="lbl f1">Kurs · 1 ¥ = ? Rp</span>
       <input class="vv" type="number" inputmode="decimal" value="${S.kurs}" onchange="S.kurs=parseFloat(this.value)||0;persist();render()"></div>
-    <div class="tot"><span>Net worth</span><span>${yen(nw().net)}</span></div>
+    <div class="tot"><span>Net worth</span><span>${disp(nw().net)}</span></div>
   </div>`;
 }
 
@@ -448,7 +459,7 @@ function viewStats(){
   <div class="panel">
     <div class="ph"><h2>Net-worth trend</h2><button class="madd" onclick="snapNow()">＋ Snapshot now</button></div>
     <div style="padding:14px">${areaChart(S.snapshots.map(s=>s.net).length?S.snapshots.map(s=>s.net):[],460,140)}</div>
-    ${S.snapshots.slice(-6).reverse().map(s=>`<div class="tx"><div class="mid"><div class="ds mono" style="font-size:13px">${s.month}</div></div><div class="rt"><div class="a">${yen(s.net)}</div></div></div>`).join("")}
+    ${S.snapshots.slice(-6).reverse().map(s=>`<div class="tx"><div class="mid"><div class="ds mono" style="font-size:13px">${s.month}</div></div><div class="rt"><div class="a">${disp(s.net)}</div></div></div>`).join("")}
   </div>
   <div class="panel">
     <div class="ph"><h2>In vs Out</h2><span class="lbl">last ${keys.length} mo</span></div>
@@ -464,7 +475,7 @@ function viewStats(){
   </div>
   <div class="grid2">
     <div class="card"><div class="k">Savings rate</div><div class="v" style="color:${sr>=0?'var(--in)':'var(--neg)'}">${sr.toFixed(0)}%</div><div class="s">this month</div></div>
-    <div class="card"><div class="k">Avg spend/day</div><div class="v">${yen(c.outT/elapsed(S.cur))}</div><div class="s">${monthShort(S.cur)}</div></div>
+    <div class="card"><div class="k">Avg spend/day</div><div class="v">${disp(c.outT/elapsed(S.cur))}</div><div class="s">${monthShort(S.cur)}</div></div>
   </div>
   <div class="frow">
     <button class="fb" onclick="exportCSV()">Export CSV → Excel</button>
@@ -473,8 +484,20 @@ function viewStats(){
   <details><summary>RESET TO MY CURRENT SITUATION</summary><div class="frow"><button class="fb" style="border-color:var(--neg);color:var(--neg)" onclick="resetAll()">Erase & restore seed</button></div></details>`;
 }
 
+window.updTf = function(){
+  if(txDir==="tf"){
+    const a1 = S.accounts.find(a=>a.id===val('txAcc'));
+    const a2 = S.accounts.find(a=>a.id===val('txAcc2'));
+    if(a1) { el('lblOut').textContent = a1.ccy; el('lblFee').textContent = a1.ccy; }
+    if(a2) { el('lblIn').textContent = a2.ccy; }
+  } else {
+    const a1 = S.accounts.find(a=>a.id===val('txAcc'));
+    if(a1 && el('lblReg')) el('lblReg').textContent = a1.ccy;
+  }
+};
+
 /* ===== transaction sheet ===== */
-function openTx(id){editId=id||null;const t=id?MO().tx.find(x=>x.id===id):null;txDir=t?t.dir:"out";txCat=t?t.cat:"Groceries";drawTx(t);document.getElementById("ov").classList.add("show");if(!t)setTimeout(()=>{const a=document.getElementById("amt");if(a)a.focus();},120);}
+function openTx(id){editId=id||null;const t=id?MO().tx.find(x=>x.id===id):null;txDir=t?t.dir:"out";txCat=t?t.cat:"Groceries";drawTx(t);document.getElementById("ov").classList.add("show");if(!t)setTimeout(()=>{const a=document.getElementById(txDir==='tf'?'tfOut':'amt');if(a)a.focus();},120);}
 function drawTx(t){
   const cats=txDir==="out"?OUT_CATS:txDir==="in"?IN_CATS:TF_CATS;
   const isTf = txDir==="tf";
@@ -485,117 +508,140 @@ function drawTx(t){
     <button class="${txDir==='in'?'act inc':''}" onclick="setDir('in')">▲ Masuk</button>
     <button class="${txDir==='tf'?'act tfc':''}" onclick="setDir('tf')">⇋ Transfer</button>
   </div>
-  <div class="field"><label>Jumlah ¥</label><input id="amt" class="big" type="number" inputmode="numeric" placeholder="0" value="${t?t.amt:''}"></div>
-  ${!t?`<div class="field"><label>Quick add</label><div class="chips">${QUICK.filter(q=>q.dir===txDir).map((q,i)=>`<button class="chip q" onclick="quick(${i})">${q.l}</button>`).join("")}</div></div>`:""}
-  <div class="field"><label>Keterangan</label><input id="desc" placeholder="e.g. ${isTf?'Tarik tunai':'Tsuruha'}" value="${t?esc(t.desc):''}"></div>
   
   ${isTf ? `
   <div class="grid2" style="margin-top:0">
     <div class="field"><label>DARI Akun</label>
-      <select id="txAcc">
+      <select id="txAcc" onchange="updTf()">
         ${S.accounts.map(a=>`<option value="${a.id}" ${t&&t.accId===a.id?'selected':(!t&&a.name==='Yuchou'?'selected':'')}>${esc(a.name)} (${a.ccy})</option>`).join("")}
       </select>
     </div>
     <div class="field"><label>KE Akun</label>
-      <select id="txAcc2">
+      <select id="txAcc2" onchange="updTf()">
         ${S.accounts.map(a=>`<option value="${a.id}" ${t&&t.accId2===a.id?'selected':(!t&&a.name==='Dompet'?'selected':'')}>${esc(a.name)} (${a.ccy})</option>`).join("")}
       </select>
     </div>
   </div>
+  <div class="field"><label>Nominal Keluar <span id="lblOut" class="tg"></span></label>
+     <input id="tfOut" class="big" type="number" inputmode="decimal" placeholder="0" value="${t?t.tfOut||t.rawAmt||t.amt:''}">
+  </div>
+  <div class="field"><label>Biaya Admin <span id="lblFee" class="tg"></span></label>
+     <input id="tfFee" class="big" type="number" inputmode="decimal" placeholder="0" value="${t?t.tfFee||0:''}">
+  </div>
+  <div class="field"><label>Nominal Diterima <span id="lblIn" class="tg"></span></label>
+     <input id="tfIn" class="big" type="number" inputmode="decimal" placeholder="0" value="${t?t.tfIn||t.rawAmt||t.amt:''}">
+     <p style="font-size:10px;color:var(--muted);text-align:center;margin-top:4px">Isi persis seperti mutasi akun tujuan</p>
+  </div>
   ` : `
+  <div class="field"><label>Nominal <span id="lblReg" class="tg"></span></label><input id="amt" class="big" type="number" inputmode="decimal" placeholder="0" value="${t?(t.rawAmt||t.amt):''}"></div>
   <div class="field"><label>Dompet / Akun</label>
-    <select id="txAcc">
+    <select id="txAcc" onchange="updTf()">
       ${S.accounts.map(a=>`<option value="${a.id}" ${t&&t.accId===a.id?'selected':(!t&&a.name==='Dompet'?'selected':'')}>${esc(a.name)} (${a.ccy})</option>`).join("")}
     </select>
   </div>
   `}
   
+  ${!t&&!isTf?`<div class="field"><label>Quick add</label><div class="chips">${QUICK.filter(q=>q.dir===txDir).map((q,i)=>`<button class="chip q" onclick="quick(${i})">${q.l}</button>`).join("")}</div></div>`:""}
+  <div class="field"><label>Keterangan</label><input id="desc" placeholder="e.g. ${isTf?'Tarik tunai':'Tsuruha'}" value="${t?esc(t.desc):''}"></div>
   <div class="field"><label>Kategori</label><div class="chips" id="cc">${cats.map(k=>`<button class="chip ${txCat===k?'act':''}" onclick="setCat('${k}')">${k}</button>`).join("")}</div></div>
   <div class="field"><label>Tanggal</label><input id="date" type="date" value="${t?t.date:new Date().toISOString().slice(0,10)}"></div>
   <div class="acts">${t?`<button class="del" onclick="delTx('${t.id}')">Hapus</button>`:""}<button onclick="closeOv()">Batal</button><button class="save" onclick="saveTx()">Simpan</button></div>`;
+  setTimeout(updTf, 50);
 }
 
-function setDir(d){txDir=d;
+function setDir(d){
+  const oldDir = txDir;
+  txDir=d;
   if(d==="tf") txCat="Transfer";
   else if((d==="out"?OUT_CATS:IN_CATS).indexOf(txCat)<0) txCat=d==="out"?"Groceries":"Income";
   const t=editId?MO().tx.find(x=>x.id===editId):null;
-  const a=val("amt"),ds=val("desc"),dt=val("date"),ac=val("txAcc"),ac2=val("txAcc2");
+  const a=val(oldDir==='tf'?'tfOut':'amt'),ds=val("desc"),dt=val("date");
+  let ac=val("txAcc"),ac2=val("txAcc2");
+
+  // Ini logikanya: Memaksa reset ke Yuchou saat klik tab Transfer
+  if(!t && oldDir !== d){
+    if(d==='tf') { 
+      const y = S.accounts.find(x=>x.name==='Yuchou'); if(y) ac=y.id; 
+      const dm = S.accounts.find(x=>x.name==='Dompet'); if(dm) ac2=dm.id; 
+    } else { 
+      const dm = S.accounts.find(x=>x.name==='Dompet'); if(dm) ac=dm.id; 
+    }
+  }
+
   drawTx(t?Object.assign({},t,{amt:a,desc:ds,date:dt,accId:ac,accId2:ac2}):null);
-  if(!t){if(a)el("amt").value=a;if(ds)el("desc").value=ds;if(ac)el("txAcc").value=ac;if(ac2&&el("txAcc2"))el("txAcc2").value=ac2;}
+  if(!t){
+    if(a){ const ea=el(d==='tf'?'tfOut':'amt'); if(ea) ea.value=a; }
+    if(ds)el("desc").value=ds;
+    if(ac)el("txAcc").value=ac;
+    if(ac2&&el("txAcc2"))el("txAcc2").value=ac2;
+  }
 }
+
 function setCat(k){txCat=k;[...document.querySelectorAll("#cc .chip")].forEach(b=>b.classList.toggle("act",b.textContent===k));}
-function quick(i){const q=QUICK.filter(x=>x.dir===txDir)[i];el("desc").value=q.d;setCat(q.c);if(q.a)el("amt").value=q.a;else el("amt").focus();}
+function quick(i){const q=QUICK.filter(x=>x.dir===txDir)[i];el("desc").value=q.d;setCat(q.c);if(q.a)el("amt").value=q.a;else el(txDir==='tf'?'tfOut':'amt').focus();}
 
 function saveTx(){
-  const amt=parseFloat(val("amt"));if(!amt||amt<=0){toast("Masukkan jumlah");return;}
-  const desc=val("desc").trim(),date=val("date")||new Date().toISOString().slice(0,10);
+  const desc=val("desc").trim(), date=val("date")||new Date().toISOString().slice(0,10);
   const accId=val("txAcc");
-  const accId2=txDir==="tf"?val("txAcc2"):null;
 
-  if(txDir==="tf" && accId===accId2){toast("Akun asal dan tujuan tidak boleh sama");return;}
+  if(txDir==="tf"){
+    const tfOut=parseFloat(val("tfOut")), tfFee=parseFloat(val("tfFee"))||0, tfIn=parseFloat(val("tfIn"));
+    const accId2=val("txAcc2");
+    if(!tfOut || !tfIn){toast("Masukkan nominal");return;}
+    if(accId===accId2){toast("Akun asal & tujuan sama!");return;}
 
-  // Revert old account contribution if editing an existing transaction
-  if(editId){
-    const t=MO().tx.find(x=>x.id===editId);
-    if(t){
-      // revert old from account
-      if(t.accId){
-        const oldAcc=S.accounts.find(a=>a.id===t.accId);
-        if(oldAcc){
-          const oldAmtInCcy = oldAcc.ccy === "JPY" ? t.amt : t.amt * (S.kurs || 1);
-          if(t.dir === "in") oldAcc.amount -= oldAmtInCcy;
-          else oldAcc.amount += oldAmtInCcy; // "out" and "tf" act as withdrawal from accId
-        }
+    const nA=S.accounts.find(a=>a.id===accId), nB=S.accounts.find(a=>a.id===accId2);
+    // Base JPY amount for visual unifying in ledger
+    const baseAmt = nA && nA.ccy === "JPY" ? tfOut : tfOut / (S.kurs || 1);
+
+    if(editId){
+      const t=MO().tx.find(x=>x.id===editId);
+      if(t){
+        if(t.accId){const oA=S.accounts.find(a=>a.id===t.accId);if(oA)oA.amount+=(t.tfOut||t.rawAmt||t.amt)+(t.tfFee||0);}
+        if(t.accId2){const oB=S.accounts.find(a=>a.id===t.accId2);if(oB)oB.amount-=(t.tfIn||t.rawAmt||t.amt);}
       }
-      // revert old to account (if it was a transfer)
-      if(t.dir==="tf" && t.accId2){
-        const oldAcc2=S.accounts.find(a=>a.id===t.accId2);
-        if(oldAcc2){
-          const oldAmtInCcy2 = oldAcc2.ccy === "JPY" ? t.amt : t.amt * (S.kurs || 1);
-          oldAcc2.amount -= oldAmtInCcy2; // revert the deposit
-        }
-      }
+      Object.assign(t,{amt:baseAmt, tfOut, tfFee, tfIn, desc, date, dir:txDir, cat:txCat, accId, accId2});
+    } else {
+      MO().tx.push({id:u(), amt:baseAmt, tfOut, tfFee, tfIn, desc, date, dir:txDir, cat:txCat, accId, accId2});
     }
-    Object.assign(t,{amt,desc,date,dir:txDir,cat:txCat,accId,accId2});
+
+    if(nA) nA.amount -= (tfOut + tfFee);
+    if(nB) nB.amount += tfIn;
   } else {
-    MO().tx.push({id:u(),amt,desc,date,dir:txDir,cat:txCat,accId,accId2});
-  }
+    // Regular IN/OUT
+    const inputAmt=parseFloat(val("amt")); if(!inputAmt||inputAmt<=0){toast("Masukkan nominal");return;}
+    const nA=S.accounts.find(a=>a.id===accId);
+    // Translate to JPY base so global sums work correctly
+    const baseAmt = nA && nA.ccy === "JPY" ? inputAmt : inputAmt / (S.kurs || 1);
 
-  // Deduct/Add from the newly selected account(s)
-  const newAcc=S.accounts.find(a=>a.id===accId);
-  if(newAcc){
-    const amtInCcy = newAcc.ccy === "JPY" ? amt : amt * (S.kurs || 1);
-    if(txDir === "in") newAcc.amount += amtInCcy;
-    else newAcc.amount -= amtInCcy; // for "out" and "tf"
-  }
-  if(txDir==="tf" && accId2){
-    const newAcc2=S.accounts.find(a=>a.id===accId2);
-    if(newAcc2){
-      const amtInCcy2 = newAcc2.ccy === "JPY" ? amt : amt * (S.kurs || 1);
-      newAcc2.amount += amtInCcy2; // transfer destination gets addition
+    if(editId){
+      const t=MO().tx.find(x=>x.id===editId);
+      if(t && t.accId){
+        const oA=S.accounts.find(a=>a.id===t.accId);
+        if(oA) { const oAmt = (t.rawAmt|| (oA.ccy==="JPY"?t.amt:t.amt*(S.kurs||1))); if(t.dir==="in") oA.amount-=oAmt; else oA.amount+=oAmt; }
+      }
+      Object.assign(t,{amt:baseAmt, rawAmt:inputAmt, desc, date, dir:txDir, cat:txCat, accId});
+    } else {
+      MO().tx.push({id:u(), amt:baseAmt, rawAmt:inputAmt, desc, date, dir:txDir, cat:txCat, accId});
     }
+
+    if(nA){ if(txDir==="in") nA.amount+=inputAmt; else nA.amount-=inputAmt; }
   }
 
-  persist();closeOv();render();toast(editId?"Diperbarui":"Tersimpan ✓");
+  persist();closeOv();render();toast("Tersimpan ✓");
 }
 
 function delTx(id){
   if(!confirm("Hapus transaksi ini?"))return;
   const t=MO().tx.find(x=>x.id===id);
   if(t){
-    if(t.accId){
-      const acc=S.accounts.find(a=>a.id===t.accId);
-      if(acc){
-        const amtInCcy = acc.ccy === "JPY" ? t.amt : t.amt * (S.kurs || 1);
-        if(t.dir === "in") acc.amount -= amtInCcy;
-        else acc.amount += amtInCcy; // refund to source
-      }
-    }
-    if(t.dir==="tf" && t.accId2){
-      const acc2=S.accounts.find(a=>a.id===t.accId2);
-      if(acc2){
-        const amtInCcy2 = acc2.ccy === "JPY" ? t.amt : t.amt * (S.kurs || 1);
-        acc2.amount -= amtInCcy2; // remove from destination
+    if(t.dir==="tf"){
+      if(t.accId){const a=S.accounts.find(a=>a.id===t.accId);if(a)a.amount+=(t.tfOut||t.rawAmt||t.amt)+(t.tfFee||0);}
+      if(t.accId2){const a2=S.accounts.find(a=>a.id===t.accId2);if(a2)a2.amount-=(t.tfIn||t.rawAmt||t.amt);}
+    } else {
+      if(t.accId){
+        const acc=S.accounts.find(a=>a.id===t.accId);
+        if(acc){ const oAmt = (t.rawAmt|| (acc.ccy==="JPY"?t.amt:t.amt*(S.kurs||1))); if(t.dir==="in") acc.amount-=oAmt; else acc.amount+=oAmt; }
       }
     }
   }
@@ -610,8 +656,8 @@ function openHold(id){hEdit=id||null;const h=id?S.holdings.find(x=>x.id===id):{b
   <div class="field"><label>Broker</label><input id="hb" value="${esc(h.broker)}"></div>
   <div class="field"><label>Ticker</label><input id="ht" value="${esc(h.ticker)}" placeholder="BRMS"></div>
   <div class="field"><label>Lots (×100 shares)</label><input id="hl" type="number" inputmode="numeric" value="${h.lots}"></div>
-  <div class="field"><label>Avg buy price (Rp)</label><input id="ha" type="number" inputmode="numeric" value="${h.avg}"></div>
-  <div class="field"><label>Last price (Rp)</label><input id="hp" type="number" inputmode="numeric" value="${h.last}"></div>
+  <div class="field"><label>Avg buy price (Rp)</label><input id="ha" type="number" inputmode="decimal" value="${h.avg}"></div>
+  <div class="field"><label>Last price (Rp)</label><input id="hp" type="number" inputmode="decimal" value="${h.last}"></div>
   <div class="acts">${id?`<button class="del" onclick="delHold('${id}')">Hapus</button>`:""}<button onclick="closeOv()">Batal</button><button class="save" onclick="saveHold()">Simpan</button></div>`;
   document.getElementById("ov").classList.add("show");}
 function saveHold(){const o={broker:val("hb")||"?",ticker:(val("ht")||"?").toUpperCase(),lots:parseFloat(val("hl"))||0,avg:parseFloat(val("ha"))||0,last:parseFloat(val("hp"))||0};
