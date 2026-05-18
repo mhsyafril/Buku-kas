@@ -365,13 +365,16 @@ function viewLedger(){
   </div>
   <div class="panel">
     <div class="ph"><h2>Entries</h2><span class="lbl">${MO().tx.length}</span></div>
-    ${tx.length?tx.map(t=>{const d=new Date(t.date);return `<div class="tx" onclick="openTx('${t.id}')">
+    ${tx.length?tx.map(t=>{
+      const d=new Date(t.date);
+      const acc = t.accId ? S.accounts.find(a=>a.id===t.accId) : null;
+      return `<div class="tx" onclick="openTx('${t.id}')">
       <div class="dt">${monthShort(t.date.slice(0,7))}<b>${d.getUTCDate()}</b></div>
-      <div class="mid"><div class="ds">${esc(t.desc)||"—"}</div><span class="tg">${t.cat}</span></div>
+      <div class="mid"><div class="ds">${esc(t.desc)||"—"}</div><span class="tg">${t.cat}</span>${acc?`<span class="tg" style="margin-left:5px;background:#E2DBC4">${esc(acc.name)}</span>`:''}</div>
       <div class="rt"><div class="a ${t.dir==='in'?'amt-in':'amt-out'}">${t.dir==='in'?'+':'−'}${nf(t.amt)}</div><div class="b">${nf(t._bal)}</div></div></div>`;}).join("")
       :`<div class="empty">Empty month. Carry-over: <b>${yen(MO().start||0)}</b><br><br>Tap ＋ to add a transaction.</div>`}
     <div class="row" style="border-top:1px solid var(--line2)"><span class="lbl f1">Saldo bulan lalu (carry)</span>
-      <input class="vv" type="number" inputmode="numeric" value="${MO().start||0}" oninput="MO().start=parseFloat(this.value)||0;persist();render()"></div>
+      <input class="vv" type="number" inputmode="numeric" value="${MO().start||0}" onchange="MO().start=parseFloat(this.value)||0;persist();render()"></div>
   </div>`;
 }
 
@@ -409,11 +412,11 @@ function viewInvest(){
     ${S.accounts.map(a=>`<div class="row">
       <input class="f1" value="${esc(a.name)}" oninput="upAcc('${a.id}','name',this.value)">
       <select class="ap" onchange="upAcc('${a.id}','ccy',this.value)" style="padding:8px 4px">${["JPY","IDR"].map(o=>`<option ${a.ccy===o?'selected':''}>${o}</option>`).join("")}</select>
-      <input class="vv" type="number" inputmode="numeric" value="${a.amount}" oninput="upAcc('${a.id}','amount',this.value)">
+      <input class="vv" type="number" inputmode="numeric" value="${a.amount}" onchange="upAcc('${a.id}','amount',this.value)">
       <button class="rm" onclick="rmAcc('${a.id}')">×</button></div>`).join("")}
     <button class="addmini" onclick="addAcc()">＋ ADD ACCOUNT</button>
     <div class="row"><span class="lbl f1">Kurs · 1 ¥ = ? Rp</span>
-      <input class="vv" type="number" inputmode="decimal" value="${S.kurs}" oninput="S.kurs=parseFloat(this.value)||0;persist();render()"></div>
+      <input class="vv" type="number" inputmode="decimal" value="${S.kurs}" onchange="S.kurs=parseFloat(this.value)||0;persist();render()"></div>
     <div class="tot"><span>Net worth</span><span>${yen(nw().net)}</span></div>
   </div>`;
 }
@@ -462,21 +465,67 @@ function drawTx(t){
   <div class="field"><label>Jumlah ¥</label><input id="amt" class="big" type="number" inputmode="numeric" placeholder="0" value="${t?t.amt:''}"></div>
   ${!t?`<div class="field"><label>Quick add</label><div class="chips">${QUICK.filter(q=>q.dir===txDir).map((q,i)=>`<button class="chip q" onclick="quick(${i})">${q.l}</button>`).join("")}</div></div>`:""}
   <div class="field"><label>Keterangan</label><input id="desc" placeholder="e.g. Tsuruha" value="${t?esc(t.desc):''}"></div>
+  <div class="field"><label>Dompet / Akun</label>
+    <select id="txAcc">
+      ${S.accounts.map(a=>`<option value="${a.id}" ${t&&t.accId===a.id?'selected':(!t&&a.name==='Dompet'?'selected':'')}>${esc(a.name)} (${a.ccy})</option>`).join("")}
+    </select>
+  </div>
   <div class="field"><label>Kategori</label><div class="chips" id="cc">${cats.map(k=>`<button class="chip ${txCat===k?'act':''}" onclick="setCat('${k}')">${k}</button>`).join("")}</div></div>
   <div class="field"><label>Tanggal</label><input id="date" type="date" value="${t?t.date:new Date().toISOString().slice(0,10)}"></div>
   <div class="acts">${t?`<button class="del" onclick="delTx('${t.id}')">Hapus</button>`:""}<button onclick="closeOv()">Batal</button><button class="save" onclick="saveTx()">Simpan</button></div>`;
 }
 function setDir(d){txDir=d;if((d==="out"?OUT_CATS:IN_CATS).indexOf(txCat)<0)txCat=d==="out"?"Groceries":"Income";
-  const t=editId?MO().tx.find(x=>x.id===editId):null;const a=val("amt"),ds=val("desc"),dt=val("date");
-  drawTx(t?Object.assign({},t,{amt:a,desc:ds,date:dt}):null);if(!t){if(a)el("amt").value=a;if(ds)el("desc").value=ds;}}
+  const t=editId?MO().tx.find(x=>x.id===editId):null;const a=val("amt"),ds=val("desc"),dt=val("date"),ac=val("txAcc");
+  drawTx(t?Object.assign({},t,{amt:a,desc:ds,date:dt,accId:ac}):null);if(!t){if(a)el("amt").value=a;if(ds)el("desc").value=ds;if(ac)el("txAcc").value=ac;}}
 function setCat(k){txCat=k;[...document.querySelectorAll("#cc .chip")].forEach(b=>b.classList.toggle("act",b.textContent===k));}
 function quick(i){const q=QUICK.filter(x=>x.dir===txDir)[i];el("desc").value=q.d;setCat(q.c);if(q.a)el("amt").value=q.a;else el("amt").focus();}
-function saveTx(){const amt=parseFloat(val("amt"));if(!amt||amt<=0){toast("Masukkan jumlah");return;}
+
+function saveTx(){
+  const amt=parseFloat(val("amt"));if(!amt||amt<=0){toast("Masukkan jumlah");return;}
   const desc=val("desc").trim(),date=val("date")||new Date().toISOString().slice(0,10);
-  if(editId){const t=MO().tx.find(x=>x.id===editId);Object.assign(t,{amt,desc,date,dir:txDir,cat:txCat});}
-  else MO().tx.push({id:u(),amt,desc,date,dir:txDir,cat:txCat});
-  persist();closeOv();render();toast(editId?"Diperbarui":"Tersimpan ✓");}
-function delTx(id){if(!confirm("Hapus transaksi ini?"))return;MO().tx=MO().tx.filter(x=>x.id!==id);persist();closeOv();render();}
+  const accId=val("txAcc");
+
+  // Revert old account contribution if editing an existing transaction
+  if(editId){
+    const t=MO().tx.find(x=>x.id===editId);
+    if(t && t.accId){
+      const oldAcc=S.accounts.find(a=>a.id===t.accId);
+      if(oldAcc){
+        const oldAmtInCcy = oldAcc.ccy === "JPY" ? t.amt : t.amt * (S.kurs || 1);
+        if(t.dir === "in") oldAcc.amount -= oldAmtInCcy;
+        else oldAcc.amount += oldAmtInCcy;
+      }
+    }
+    Object.assign(t,{amt,desc,date,dir:txDir,cat:txCat,accId});
+  } else {
+    MO().tx.push({id:u(),amt,desc,date,dir:txDir,cat:txCat,accId});
+  }
+
+  // Deduct/Add from the newly selected account
+  const newAcc=S.accounts.find(a=>a.id===accId);
+  if(newAcc){
+    const amtInCcy = newAcc.ccy === "JPY" ? amt : amt * (S.kurs || 1);
+    if(txDir === "in") newAcc.amount += amtInCcy;
+    else newAcc.amount -= amtInCcy;
+  }
+
+  persist();closeOv();render();toast(editId?"Diperbarui":"Tersimpan ✓");
+}
+
+function delTx(id){
+  if(!confirm("Hapus transaksi ini?"))return;
+  const t=MO().tx.find(x=>x.id===id);
+  if(t && t.accId){
+    const acc=S.accounts.find(a=>a.id===t.accId);
+    if(acc){
+      const amtInCcy = acc.ccy === "JPY" ? t.amt : t.amt * (S.kurs || 1);
+      if(t.dir === "in") acc.amount -= amtInCcy;
+      else acc.amount += amtInCcy;
+    }
+  }
+  MO().tx=MO().tx.filter(x=>x.id!==id);
+  persist();closeOv();render();
+}
 
 /* ===== holding sheet ===== */
 let hEdit=null;
@@ -512,7 +561,8 @@ function exportCSV(){const L=["BUKU KAS,"+new Date().toLocaleString(),"","KEKAYA
   const sv=S.cur;Object.keys(S.months).sort().forEach(k=>{S.cur=k;const c=calc(k);L.push("","MONTH,"+k,"Start,"+(MO(k).start||0),"No,Date,Desc,In,Out,Bal,Cat");
     let i=1;ord(k).forEach(t=>L.push([i++,t.date,'"'+(t.desc||"")+'"',t.dir==="in"?t.amt:"",t.dir==="out"?t.amt:"",Math.round(t._bal||0),t.cat].join(",")));
     L.push("Totals,In,"+c.inT+",Out,"+c.outT+",End,"+Math.round(c.bal));});S.cur=sv;
-  dl("buku-kas.csv","text/csv",L.join("\n"));}
+  dl("buku-kas.csv","text/csv",L.join("
+"));}
 function exportJSON(){dl("buku-kas-backup.json","application/json",JSON.stringify(S,null,2));}
 function dl(n,t,d){const b=new Blob([d],{type:t}),url=URL.createObjectURL(b),a=document.createElement("a");a.href=url;a.download=n;a.click();setTimeout(()=>URL.revokeObjectURL(url),800);toast("Downloaded "+n);}
 function resetAll(){if(!confirm("Erase everything and restore your seeded situation?"))return;S=DEFAULTS();persist();render();toast("Reset");}
