@@ -561,7 +561,7 @@ function exportCSV(){const L=["BUKU KAS,"+new Date().toLocaleString(),"","KEKAYA
   const sv=S.cur;Object.keys(S.months).sort().forEach(k=>{S.cur=k;const c=calc(k);L.push("","MONTH,"+k,"Start,"+(MO(k).start||0),"No,Date,Desc,In,Out,Bal,Cat");
     let i=1;ord(k).forEach(t=>L.push([i++,t.date,'"'+(t.desc||"")+'"',t.dir==="in"?t.amt:"",t.dir==="out"?t.amt:"",Math.round(t._bal||0),t.cat].join(",")));
     L.push("Totals,In,"+c.inT+",Out,"+c.outT+",End,"+Math.round(c.bal));});S.cur=sv;
-  dl("buku-kas.csv","text/csv",L.join("n"));}
+  dl("buku-kas.csv","text/csv",L.join("\n"));}
 function exportJSON(){dl("buku-kas-backup.json","application/json",JSON.stringify(S,null,2));}
 function dl(n,t,d){const b=new Blob([d],{type:t}),url=URL.createObjectURL(b),a=document.createElement("a");a.href=url;a.download=n;a.click();setTimeout(()=>URL.revokeObjectURL(url),800);toast("Downloaded "+n);}
 function resetAll(){if(!confirm("Erase everything and restore your seeded situation?"))return;S=DEFAULTS();persist();render();toast("Reset");}
