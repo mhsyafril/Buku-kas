@@ -263,57 +263,62 @@ function persist(){
   saveT=setTimeout(async()=>{await STORE.set(KEY,JSON.stringify(S));if(p){p.textContent="saved";p.classList.add("on");}},400);
 }
 async function load(){const v=await STORE.get(KEY);if(v){try{S=Object.assign(DEFAULTS(),JSON.parse(v));S.viewCcy=S.viewCcy||"JPY";}catch(e){}}}
-function toast(t){const e=document.getElementById("toast");e.textContent=t;e.classList.add("show");clearTimeout(e._h);e._h=setTimeout(()=>e.classList.remove("show"),1900);}
+function toast(t){const e=document.getElementById("toast");e.textContent=t;e.classList.add("show");clearTimeout(e._h);e._h=setTimeout(()=>e.classList.remove("show"),2500);}
 
-/* ===== AUTO-UPDATE API (KURS & SAHAM) ===== */
-async function fetchKurs(){
+/* ===== BATCH REALTIME API (YEN & SAHAM) ===== */
+async function fetchMarketData(silent=false){
+  if(!silent) toast("🔄 Sinkronisasi pasar real-time...");
   try {
-    const res = await fetch("https://open.er-api.com/v6/latest/JPY");
-    if(!res.ok) return;
-    const data = await res.json();
-    if(data && data.rates && data.rates.IDR){
-      const newKurs = data.rates.IDR;
-      S.kurs = parseFloat(newKurs.toFixed(2));
-      persist(); render();
-      toast("Kurs JPY/IDR otomatis diupdate: " + S.kurs);
-    }
-  } catch(e) { console.log("Gagal auto-update kurs", e); }
-}
+    // 1. Kumpulkan semua kode yang butuh di-update (Kurs JPYIDR + Semua Saham)
+    let symbols = ["JPYIDR=X"];
+    S.holdings.forEach(h => {
+      let t = h.ticker.toUpperCase().trim();
+      // Otomatis tambah .JK jika saham Indonesia (4 huruf tanpa titik)
+      if(t.length === 4 && !t.includes(".")) t += ".JK";
+      if(!symbols.includes(t)) symbols.push(t);
+    });
 
-async function updateStocksAPI(){
-  if(S.holdings.length===0) return toast("Belum ada saham");
-  toast("🔄 Mengambil harga saham terbaru...");
-  let updatedCount = 0;
-  
-  for(let i=0; i<S.holdings.length; i++){
-    let ticker = S.holdings[i].ticker.toUpperCase();
-    // Yahoo finance IDX code is usually ending with .JK
-    let symbol = ticker.endsWith(".JK") ? ticker : ticker + ".JK";
+    // 2. Tembak Yahoo Finance Quote API sekaligus (Batch)
+    const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols.join(",")}`;
+    // Proxy dengan Anti-Cache (timestamp) agar harga 100% terbaru
+    const proxyUrl = `https://api.allorigins.win/get?disableCache=true&cb=${Date.now()}&url=${encodeURIComponent(url)}`;
     
-    try {
-      // Menggunakan AllOrigins proxy untuk bypass CORS restriction di browser
-      const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/'+symbol)}`);
-      if(!res.ok) continue;
-      const data = await res.json();
-      const yh = JSON.parse(data.contents);
-      
-      if(yh && yh.chart && yh.chart.result && yh.chart.result.length > 0){
-        let meta = yh.chart.result[0].meta;
-        if(meta && meta.regularMarketPrice){
-          S.holdings[i].last = parseFloat(meta.regularMarketPrice);
-          updatedCount++;
+    const res = await fetch(proxyUrl);
+    if(!res.ok) throw "Gagal HTTP";
+    const data = await res.json();
+    const yh = JSON.parse(data.contents);
+    
+    let upS = 0; let upK = false;
+    
+    // 3. Pasangkan hasil API ke dalam data lokal kita
+    if(yh && yh.quoteResponse && yh.quoteResponse.result) {
+      yh.quoteResponse.result.forEach(q => {
+        if(q.symbol === "JPYIDR=X" && q.regularMarketPrice) {
+          let nk = parseFloat(q.regularMarketPrice.toFixed(2));
+          if(S.kurs !== nk) { S.kurs = nk; upK = true; }
+        } else {
+          S.holdings.forEach(h => {
+            let ht = h.ticker.toUpperCase().trim();
+            let htJk = (ht.length === 4 && !ht.includes(".")) ? ht + ".JK" : ht;
+            if(htJk === q.symbol && q.regularMarketPrice) {
+              let nl = parseFloat(q.regularMarketPrice);
+              if(h.last !== nl) { h.last = nl; upS++; }
+            }
+          });
         }
+      });
+      
+      // 4. Update Tampilan
+      if(upK || upS > 0) {
+        persist(); render();
+        if(!silent) toast(`✓ Sukses: Kurs & ${upS} saham diupdate!`);
+      } else {
+        if(!silent) toast("Harga masih sama / up-to-date ✓");
       }
-    } catch(e) {
-      console.log("Gagal update saham: " + ticker, e);
-    }
-  }
-  
-  if(updatedCount > 0){
-    persist(); render();
-    toast(`Berhasil update ${updatedCount} saham! ✓`);
-  } else {
-    toast("Gagal update. Pastikan kode saham benar.");
+    } else throw "Format API Yahoo berubah";
+  } catch(e) {
+    console.log("Fetch Market Error:", e);
+    if(!silent) toast("⚠️ Gagal mengambil data pasar dari internet.");
   }
 }
 
@@ -463,7 +468,6 @@ function viewLedger(){
 function viewInvest(){
   const tot=S.holdings.reduce((s,h)=>s+holdJ(h),0);
   const items=S.holdings.map(h=>({label:h.broker+" "+h.ticker,val:holdJ(h),color:COL[Object.keys(COL)[(h.ticker.charCodeAt(0))%6]]||'#3F7DB0'}));
-  // stable colors per holding
   const pal=["#1F5C56","#B5613A","#3F7DB0","#C7913B","#7C5BAE","#2E7D5B"];
   items.forEach((it,i)=>it.color=pal[i%pal.length]);
   return `
@@ -480,7 +484,7 @@ function viewInvest(){
     </div>
   </div>
   <div class="panel">
-    <div class="ph"><h2>Holdings <button class="addmini" style="display:inline;width:auto;padding:3px 8px;margin-left:8px;border:1px solid var(--line);border-radius:6px;background:var(--card2)" onclick="updateStocksAPI()">🔄 Update Auto</button></h2><span class="lbl">tap to edit</span></div>
+    <div class="ph"><h2>Holdings <button class="addmini" style="display:inline;width:auto;padding:3px 8px;margin-left:8px;border:1px solid var(--line);border-radius:6px;background:var(--card2)" onclick="fetchMarketData(false)">🔄 Sinkronisasi</button></h2><span class="lbl">tap to edit</span></div>
     ${S.holdings.map(h=>{const vIDR=holdVal(h),vJ=holdJ(h),gain=((h.last-h.avg)*(h.lots*100)),gp=h.avg?((h.last/h.avg-1)*100):0;
       return `<div class="hold" onclick="openHold('${h.id}')">
         <div class="hm"><div class="t">${esc(h.broker)} · ${esc(h.ticker)}</div>
@@ -745,8 +749,8 @@ function resetAll(){if(!confirm("Erase everything and restore your seeded situat
   await load();
   render();
   const p=el("savePill");if(p){p.textContent="saved";p.classList.add("on");}
-  // Auto-fetch kurs in background on app start
-  fetchKurs();
+  // Auto-fetch in background on app start silently
+  fetchMarketData(true);
 })();
 </script>
 </body>
